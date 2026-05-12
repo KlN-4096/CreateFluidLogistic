@@ -34,7 +34,7 @@ public class MultiFluidTankBlockEntity extends SmartBlockEntity implements IHave
 
     private static final int MAX_SIZE = 3;
     private static final int TANKS = 8;
-    private static final int CAPACITY_PER_BLOCK = 8000;
+    private static final int CAPACITY_PER_BLOCK = 16000;
     private static final int SYNC_RATE = 8;
 
     protected SmartMultiFluidTank tankInventory;
