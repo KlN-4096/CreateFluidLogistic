@@ -5,6 +5,12 @@
 
 This mod expands the logistics system of Create 6.0, adding a fluid logistics system suitable for various fluids.
 
+## Notice Regarding Create Fluid
+
+The Create Fluid mod is considered by this project to have plagiarized CFL's fluid logistics implementation. See [Source Similarity Analysis](comparison-analysis.md) for the evidence summary behind this position.
+
+CFL will never handle, debug, support, or accept issue reports, requests, or pull requests related to Create Fluid or any Create-fluid-related problems. Please do not open CFL issues for Create Fluid compatibility, migration, troubleshooting, or feature requests.
+
 ## Items
 
 ### Fluid Packager
