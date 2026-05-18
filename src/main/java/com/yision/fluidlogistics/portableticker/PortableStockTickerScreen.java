@@ -1264,7 +1264,7 @@ public class PortableStockTickerScreen extends AbstractSimiContainerScreen<Porta
             }
         }
 
-        int newAmount = FluidAmountHelper.adjustFluidRequestAmount(existingOrder.count, forward, hasShiftDown(),
+        int newAmount = FluidAmountHelper.adjustStockTickerFluidRequestAmount(existingOrder.count, forward, hasShiftDown(),
                 hasControlDown(), 0, Math.max(0, maxAvailable), steps);
         if (newAmount <= 0) {
             itemsToOrder.remove(existingOrder);

@@ -434,7 +434,7 @@ public abstract class StockKeeperRequestScreenMixin {
         }
 
         int current = existingOrder.count;
-        int newAmount = FluidAmountHelper.adjustFluidRequestAmount(current, forward, Screen.hasShiftDown(),
+        int newAmount = FluidAmountHelper.adjustStockTickerFluidRequestAmount(current, forward, Screen.hasShiftDown(),
             Screen.hasControlDown(), 0, Math.max(0, maxAvailable), steps);
         if (newAmount <= 0) {
             itemsToOrder.remove(existingOrder);
