@@ -4,11 +4,10 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.simibubi.create.content.logistics.BigItemStack;
 import com.simibubi.create.content.logistics.packager.InventorySummary;
 import com.simibubi.create.content.logistics.stockTicker.CraftableBigItemStack;
-import com.simibubi.create.content.logistics.stockTicker.StockKeeperRequestMenu;
 import com.simibubi.create.content.logistics.stockTicker.StockKeeperRequestScreen;
 import com.simibubi.create.content.logistics.stockTicker.StockTickerBlockEntity;
-import com.simibubi.create.foundation.gui.menu.AbstractSimiContainerScreen;
 import com.simibubi.create.foundation.utility.CreateLang;
+import com.yision.fluidlogistics.client.FluidTooltipHelper;
 import com.yision.fluidlogistics.item.CompressedTankItem;
 import com.yision.fluidlogistics.render.FluidSlotAmountRenderer;
 import com.yision.fluidlogistics.util.FluidAmountHelper;
@@ -22,10 +21,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -40,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(StockKeeperRequestScreen.class)
-public abstract class StockKeeperRequestScreenMixin extends AbstractSimiContainerScreen<StockKeeperRequestMenu> {
+public abstract class StockKeeperRequestScreenMixin {
 
     @Shadow(remap = false)
     public List<BigItemStack> itemsToOrder;
@@ -56,10 +52,6 @@ public abstract class StockKeeperRequestScreenMixin extends AbstractSimiContaine
 
     @Shadow(remap = false)
     private boolean canRequestCraftingPackage;
-
-    public StockKeeperRequestScreenMixin(StockKeeperRequestMenu container, Inventory inv, Component title) {
-        super(container, inv, title);
-    }
 
     @Shadow(remap = false)
     protected abstract BigItemStack getOrderForItem(ItemStack stack);
@@ -171,7 +163,7 @@ public abstract class StockKeeperRequestScreenMixin extends AbstractSimiContaine
         if (fluidlogistics$isNoHoveredSlot(hoveredSlot)) {
             return;
         }
-        if (hoveredSlot.getFirst() >= 0 && !Screen.hasShiftDown() && getMaxScroll() != 0) {
+        if (hoveredSlot.getFirst() >= 0 && !Screen.hasShiftDown() && !Screen.hasControlDown() && getMaxScroll() != 0) {
             return;
         }
         if (hoveredSlot.getFirst() == -2) {
@@ -277,27 +269,24 @@ public abstract class StockKeeperRequestScreenMixin extends AbstractSimiContaine
     @Redirect(method = "renderForeground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;renderComponentTooltip(Lnet/minecraft/client/gui/Font;Ljava/util/List;II)V", ordinal = 0))
     private void fluidlogistics$recipeTooltip(GuiGraphics graphics, Font font, List<Component> tooltipLines, int mouseX, int mouseY, @Local(name = "lines")
         ArrayList<Component> lines, @Local(name = "entry") BigItemStack entry){
-        // handles adding the fluid amount to the tooltip for recipes only
         if (FluidGaugeHelper.isVirtualFluidFilter(entry.stack)) {
-            String amountText = FluidAmountHelper.formatPrecise(entry.count);
-            lines.add(1, CreateLang.text(amountText)
-                    .style(ChatFormatting.DARK_GRAY)
-                    .component());
+            ArrayList<Component> fluidLines = fluidlogistics$getPreciseFluidTooltipLines(entry, true);
+            if (!fluidLines.isEmpty()) {
+                graphics.renderComponentTooltip(font, fluidLines, mouseX, mouseY);
+                return;
+            }
         }
         graphics.renderComponentTooltip(font, lines, mouseX, mouseY);
     }
 
     @Redirect(method="renderForeground", at = @At(value="INVOKE",target = "Lnet/minecraft/client/gui/GuiGraphics;renderTooltip(Lnet/minecraft/client/gui/Font;Lnet/minecraft/world/item/ItemStack;II)V",ordinal = 0))
     private void fluidlogistics$itemTooltip(GuiGraphics graphics, Font font, ItemStack stack, int mouseX, int mouseY, @Local(name = "entry") BigItemStack entry){
-        // handles adding the fluid amount to the tooltip for items (everything else)
-        if (FluidGaugeHelper.isVirtualFluidFilter(entry.stack)) {
-            ArrayList<Component> lines = new ArrayList<>(entry.stack.getTooltipLines(Item.TooltipContext.of(minecraft.level), minecraft.player, TooltipFlag.NORMAL));
-            String amountText = FluidAmountHelper.formatPrecise(entry.count);
-            lines.add(1, CreateLang.text(amountText)
-                    .style(ChatFormatting.DARK_GRAY)
-                    .component());
-            graphics.renderComponentTooltip(font, lines, mouseX, mouseY);
-            return;
+        if (fluidlogistics$isBottomOrderEntry(entry) && FluidGaugeHelper.isVirtualFluidFilter(entry.stack)) {
+            ArrayList<Component> lines = fluidlogistics$getPreciseFluidTooltipLines(entry, false);
+            if (!lines.isEmpty()) {
+                graphics.renderComponentTooltip(font, lines, mouseX, mouseY);
+                return;
+            }
         }
         graphics.renderTooltip(font, entry.stack, mouseX, mouseY);
     }
@@ -453,6 +442,32 @@ public abstract class StockKeeperRequestScreenMixin extends AbstractSimiContaine
     @Unique
     private static boolean fluidlogistics$isNoHoveredSlot(Couple<Integer> hoveredSlot) {
         return hoveredSlot.getFirst() == -1 && hoveredSlot.getSecond() == -1;
+    }
+
+    @Unique
+    private boolean fluidlogistics$isBottomOrderEntry(BigItemStack entry) {
+        for (BigItemStack ordered : itemsToOrder) {
+            if (ordered == entry) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Unique
+    private static ArrayList<Component> fluidlogistics$getPreciseFluidTooltipLines(BigItemStack entry,
+            boolean recipeHovered) {
+        ArrayList<Component> lines = new ArrayList<>(FluidTooltipHelper.getVirtualCompressedTankTooltipLines(entry.stack));
+        if (lines.isEmpty()) {
+            return lines;
+        }
+        if (recipeHovered) {
+            lines.set(0, CreateLang.translateDirect("gui.stock_keeper.craft", lines.getFirst().copy()));
+        }
+        lines.add(1, CreateLang.text("x" + FluidAmountHelper.formatPrecise(entry.count))
+                .style(ChatFormatting.DARK_GRAY)
+                .component());
+        return lines;
     }
 
     @Unique
