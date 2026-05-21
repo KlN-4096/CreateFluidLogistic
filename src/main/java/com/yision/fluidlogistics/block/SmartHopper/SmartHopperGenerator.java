@@ -28,9 +28,10 @@ public class SmartHopperGenerator extends SpecialBlockStateGen {
 	public <T extends Block> ModelFile getModel(DataGenContext<Block, T> ctx, RegistrateBlockstateProvider prov,
 		BlockState state) {
 		Direction facing = state.getValue(SmartHopperBlock.FACING);
+		boolean powered = state.getValue(SmartHopperBlock.POWERED);
 		if (facing == Direction.DOWN) {
-			return prov.models().getExistingFile(prov.modLoc("block/smart_hopper/fluid_hopper"));
+			return prov.models().getExistingFile(prov.modLoc("block/smart_hopper/fluid_hopper" + (powered ? "_power" : "")));
 		}
-		return prov.models().getExistingFile(prov.modLoc("block/smart_hopper/fluid_hopper_side"));
+		return prov.models().getExistingFile(prov.modLoc("block/smart_hopper/fluid_hopper_side" + (powered ? "_power" : "")));
 	}
 }

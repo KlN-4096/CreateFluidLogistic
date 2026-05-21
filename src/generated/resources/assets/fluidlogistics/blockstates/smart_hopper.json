@@ -7,10 +7,10 @@
       "model": "fluidlogistics:block/smart_hopper/fluid_hopper"
     },
     "facing=down,powered=true,waterlogged=false": {
-      "model": "fluidlogistics:block/smart_hopper/fluid_hopper"
+      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_power"
     },
     "facing=down,powered=true,waterlogged=true": {
-      "model": "fluidlogistics:block/smart_hopper/fluid_hopper"
+      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_power"
     },
     "facing=east,powered=false,waterlogged=false": {
       "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side",
@@ -21,11 +21,11 @@
       "y": 90
     },
     "facing=east,powered=true,waterlogged=false": {
-      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side",
+      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side_power",
       "y": 90
     },
     "facing=east,powered=true,waterlogged=true": {
-      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side",
+      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side_power",
       "y": 90
     },
     "facing=north,powered=false,waterlogged=false": {
@@ -35,10 +35,10 @@
       "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side"
     },
     "facing=north,powered=true,waterlogged=false": {
-      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side"
+      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side_power"
     },
     "facing=north,powered=true,waterlogged=true": {
-      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side"
+      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side_power"
     },
     "facing=south,powered=false,waterlogged=false": {
       "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side",
@@ -49,11 +49,11 @@
       "y": 180
     },
     "facing=south,powered=true,waterlogged=false": {
-      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side",
+      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side_power",
       "y": 180
     },
     "facing=south,powered=true,waterlogged=true": {
-      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side",
+      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side_power",
       "y": 180
     },
     "facing=west,powered=false,waterlogged=false": {
@@ -65,11 +65,11 @@
       "y": 270
     },
     "facing=west,powered=true,waterlogged=false": {
-      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side",
+      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side_power",
       "y": 270
     },
     "facing=west,powered=true,waterlogged=true": {
-      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side",
+      "model": "fluidlogistics:block/smart_hopper/fluid_hopper_side_power",
       "y": 270
     }
   }
