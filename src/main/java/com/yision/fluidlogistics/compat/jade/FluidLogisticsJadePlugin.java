@@ -147,10 +147,8 @@ public class FluidLogisticsJadePlugin implements IWailaPlugin {
                 ItemStack slotStack = contents.getStackInSlot(i);
                 if (!slotStack.isEmpty() && slotStack.getItem() instanceof CompressedTankItem) {
                     FluidStack fluid = CompressedTankItem.getFluid(slotStack);
-                    if (!fluid.isEmpty()) {
-                        int totalAmount = fluid.getAmount() * slotStack.getCount();
-                        mergeFluid(fluids, fluid, totalAmount);
-                    }
+                    int totalAmount = fluid.getAmount() * slotStack.getCount();
+                    mergeFluid(fluids, fluid, totalAmount);
                 }
             }
  

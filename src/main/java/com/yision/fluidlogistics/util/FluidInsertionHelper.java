@@ -1,12 +1,8 @@
 package com.yision.fluidlogistics.util;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
-
-import com.yision.fluidlogistics.handler.fluidpackage.FluidPackageTargetAdapter;
-import com.yision.fluidlogistics.handler.fluidpackage.FluidPackageTargetAdapters;
 
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -15,84 +11,63 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 
 public final class FluidInsertionHelper {
 
-    private FluidInsertionHelper() {
-    }
+	private FluidInsertionHelper() {
+	}
 
-    private record TankSnapshot(FluidStack fluid, int capacity) {
-    }
+	@Nullable
+	private static FluidStack getSingleMergedFluid(List<FluidStack> fluids) {
+		FluidStack merged = FluidStack.EMPTY;
 
-    public static boolean canAcceptAll(@Nullable BlockEntity target, IFluidHandler fluidHandler, List<FluidStack> packageFluids) {
-        if (packageFluids.isEmpty()) {
-            return true;
-        }
+		for (FluidStack fluid : fluids) {
+			if (fluid.isEmpty()) {
+				continue;
+			}
 
-        if (target != null) {
-            FluidPackageTargetAdapter adapter = FluidPackageTargetAdapters.find(target, fluidHandler);
-            if (adapter != null) {
-                return adapter.canAcceptAll(target, fluidHandler, packageFluids);
-            }
-        }
+			if (merged.isEmpty()) {
+				merged = fluid.copy();
+				continue;
+			}
 
-        List<TankSnapshot> tankSnapshots = new ArrayList<>();
-        for (int tank = 0; tank < fluidHandler.getTanks(); tank++) {
-            tankSnapshots.add(new TankSnapshot(fluidHandler.getFluidInTank(tank).copy(), fluidHandler.getTankCapacity(tank)));
-        }
+			if (!FluidStack.isSameFluidSameComponents(merged, fluid)) {
+				return null;
+			}
 
-        for (FluidStack fluid : packageFluids) {
-            if (InfiniteFluidHandlerHelper.canAcceptInfinitely(fluidHandler, fluid)) {
-                continue;
-            }
+			merged.grow(fluid.getAmount());
+		}
 
-            if (!reserveFluid(fluidHandler, tankSnapshots, fluid)) {
-                return false;
-            }
-            if (fluidHandler.fill(fluid.copy(), FluidAction.SIMULATE) != fluid.getAmount()) {
-                return false;
-            }
-        }
+		return merged;
+	}
 
-        return true;
-    }
+	public static boolean canAcceptAll(@Nullable BlockEntity target, IFluidHandler handler, List<FluidStack> packageFluids) {
+		FluidStack fluid = getSingleMergedFluid(packageFluids);
+		if (fluid == null) {
+			return false;
+		}
+		if (fluid.isEmpty()) {
+			return true;
+		}
 
-    private static boolean reserveFluid(IFluidHandler fluidHandler, List<TankSnapshot> tankSnapshots, FluidStack fluid) {
-        int remaining = fluid.getAmount();
+		if (InfiniteFluidHandlerHelper.canAcceptInfinitely(handler, fluid)) {
+			return true;
+		}
 
-        for (int tank = 0; tank < tankSnapshots.size() && remaining > 0; tank++) {
-            TankSnapshot snapshot = tankSnapshots.get(tank);
-            if (snapshot.fluid().isEmpty()) {
-                continue;
-            }
-            if (!FluidStack.isSameFluidSameComponents(snapshot.fluid(), fluid)) {
-                continue;
-            }
+		return handler.fill(fluid.copy(), FluidAction.SIMULATE) == fluid.getAmount();
+	}
 
-            int space = snapshot.capacity() - snapshot.fluid().getAmount();
-            if (space <= 0) {
-                continue;
-            }
+	public static boolean insertAllOrNothing(@Nullable BlockEntity target, IFluidHandler handler, List<FluidStack> packageFluids) {
+		FluidStack fluid = getSingleMergedFluid(packageFluids);
+		if (fluid == null) {
+			return false;
+		}
+		if (fluid.isEmpty()) {
+			return true;
+		}
 
-            int inserted = Math.min(space, remaining);
-            FluidStack updated = snapshot.fluid().copy();
-            updated.grow(inserted);
-            tankSnapshots.set(tank, new TankSnapshot(updated, snapshot.capacity()));
-            remaining -= inserted;
-        }
+		if (!canAcceptAll(target, handler, packageFluids)) {
+			return false;
+		}
 
-        for (int tank = 0; tank < tankSnapshots.size() && remaining > 0; tank++) {
-            TankSnapshot snapshot = tankSnapshots.get(tank);
-            if (!snapshot.fluid().isEmpty()) {
-                continue;
-            }
-            if (!fluidHandler.isFluidValid(tank, fluid)) {
-                continue;
-            }
-
-            int inserted = Math.min(snapshot.capacity(), remaining);
-            FluidStack updated = fluid.copyWithAmount(inserted);
-            tankSnapshots.set(tank, new TankSnapshot(updated, snapshot.capacity()));
-            remaining -= inserted;
-        }
-
-        return remaining == 0;
-    }
+		int filled = handler.fill(fluid.copy(), FluidAction.EXECUTE);
+		return filled == fluid.getAmount();
+	}
 }

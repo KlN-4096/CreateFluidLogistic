@@ -1,7 +1,6 @@
 package com.yision.fluidlogistics.mixin.logistics;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
@@ -15,8 +14,8 @@ import com.simibubi.create.content.logistics.stockTicker.PackageOrderWithCrafts;
 import com.simibubi.create.foundation.item.ItemHelper;
 import com.yision.fluidlogistics.goggle.PackagerGoggleInfo;
 import com.yision.fluidlogistics.item.CompressedTankItem;
-import com.yision.fluidlogistics.util.IPackagerOverrideData;
 import com.yision.fluidlogistics.util.FluidInsertionHelper;
+import com.yision.fluidlogistics.util.IPackagerOverrideData;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,7 +31,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -108,33 +106,19 @@ public class PackagerBlockEntityMixin implements IPackagerOverrideData, IHaveGog
             return;
         }
 
-        if (!FluidInsertionHelper.canAcceptAll(targetBlockEntity, fluidHandler, packageFluids)) {
-            cir.setReturnValue(false);
-            return;
+        if (simulate) {
+            if (!FluidInsertionHelper.canAcceptAll(targetBlockEntity, fluidHandler, packageFluids)) {
+                cir.setReturnValue(false);
+                return;
+            }
+        } else {
+            if (!FluidInsertionHelper.insertAllOrNothing(targetBlockEntity, fluidHandler, packageFluids)) {
+                cir.setReturnValue(false);
+                return;
+            }
         }
 
-        Iterator<ItemStack> iterator = items.iterator();
-        while (iterator.hasNext()) {
-            ItemStack item = iterator.next();
-            if (!(item.getItem() instanceof CompressedTankItem)) {
-                continue;
-            }
-
-            FluidStack fluid = CompressedTankItem.getFluid(item);
-            if (fluid.isEmpty()) {
-                continue;
-            }
-
-            for (int count = 0; count < item.getCount(); count++) {
-                int filled = fluidHandler.fill(fluid.copy(), simulate ? FluidAction.SIMULATE : FluidAction.EXECUTE);
-                if (filled != fluid.getAmount()) {
-                    cir.setReturnValue(false);
-                    return;
-                }
-            }
-
-            iterator.remove();
-        }
+        items.removeIf(item -> item.getItem() instanceof CompressedTankItem);
 
         if (items.isEmpty()) {
             if (!simulate) {
@@ -200,6 +184,8 @@ public class PackagerBlockEntityMixin implements IPackagerOverrideData, IHaveGog
         return true;
     }
 
+    // --- Private helpers ---
+
     @Unique
     private static String fluidlogistics$findSignAddress(PackagerBlockEntity packager) {
         for (Direction side : Iterate.directions) {
@@ -249,10 +235,6 @@ public class PackagerBlockEntityMixin implements IPackagerOverrideData, IHaveGog
             }
 
             FluidStack fluid = CompressedTankItem.getFluid(item);
-            if (fluid.isEmpty()) {
-                continue;
-            }
-
             for (int count = 0; count < item.getCount(); count++) {
                 packageFluids.add(fluid.copy());
             }

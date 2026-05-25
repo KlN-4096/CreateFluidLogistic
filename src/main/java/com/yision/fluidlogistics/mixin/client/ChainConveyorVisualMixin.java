@@ -125,9 +125,7 @@ public class ChainConveyorVisualMixin {
             var slotStack = contents.getStackInSlot(i);
             if (!slotStack.isEmpty() && slotStack.getItem() instanceof CompressedTankItem) {
                 FluidStack fluid = CompressedTankItem.getFluid(slotStack);
-                if (!fluid.isEmpty()) {
-                    fluidlogistics$mergeFluid(fluids, fluid);
-                }
+                fluidlogistics$mergeFluid(fluids, fluid);
             }
         }
 

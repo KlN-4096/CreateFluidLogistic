@@ -62,14 +62,10 @@ public class CompressedTankItem extends Item {
         return Config.getCompressedTankCapacity();
     }
 
-    public static boolean isEmpty(ItemStack stack) {
-        return getFluid(stack).isEmpty();
-    }
-
     @Override
     public Component getName(ItemStack stack) {
         FluidStack fluid = getFluid(stack);
-        if (isVirtual(stack) && !fluid.isEmpty()) {
+        if (isVirtual(stack)) {
             return fluid.getHoverName();
         }
         return super.getName(stack);
@@ -84,14 +80,8 @@ public class CompressedTankItem extends Item {
         }
 
         int capacity = getCapacity();
-        if (!fluid.isEmpty()) {
-            tooltipComponents.add(Component.literal(fluid.getAmount() + " / " + capacity + " mB")
-                    .withStyle(ChatFormatting.GRAY));
-            return;
-        } else {
-            tooltipComponents.add(Component.literal("0 / " + capacity + " mB")
-                    .withStyle(ChatFormatting.GRAY));
-        }
+        tooltipComponents.add(Component.literal(fluid.getAmount() + " / " + capacity + " mB")
+                .withStyle(ChatFormatting.GRAY));
     }
 
     @Override
@@ -124,22 +114,14 @@ public class CompressedTankItem extends Item {
 
         FluidStack heldFluid = getFluid(heldStack);
 
-        if (!heldFluid.isEmpty()) {
-            int filled = fluidHandler.fill(heldFluid, FluidAction.EXECUTE);
-            if (filled > 0) {
-                heldStack.shrink(1);
-                if (player != null && heldStack.isEmpty()) {
-                    player.setItemInHand(context.getHand(), ItemStack.EMPTY);
-                }
-                
-                level.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0f, 1.0f);
-                return InteractionResult.SUCCESS;
-            }
-        } else {
+        int filled = fluidHandler.fill(heldFluid, FluidAction.EXECUTE);
+        if (filled > 0) {
             heldStack.shrink(1);
             if (player != null && heldStack.isEmpty()) {
                 player.setItemInHand(context.getHand(), ItemStack.EMPTY);
             }
+
+            level.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0f, 1.0f);
             return InteractionResult.SUCCESS;
         }
 
@@ -150,10 +132,6 @@ public class CompressedTankItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
         ItemStack heldStack = player.getItemInHand(usedHand);
         FluidStack fluid = getFluid(heldStack);
-
-        if (fluid.isEmpty()) {
-            return InteractionResultHolder.pass(heldStack);
-        }
 
         if (level.isClientSide()) {
             return InteractionResultHolder.success(heldStack);

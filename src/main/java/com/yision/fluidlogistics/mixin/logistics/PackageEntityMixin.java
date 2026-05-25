@@ -153,9 +153,7 @@ public abstract class PackageEntityMixin implements IHaveGoggleInformation {
             ItemStack slotStack = contents.getStackInSlot(i);
             if (!slotStack.isEmpty() && slotStack.getItem() instanceof CompressedTankItem) {
                 FluidStack fluid = CompressedTankItem.getFluid(slotStack);
-                if (!fluid.isEmpty()) {
-                    mergeFluid(fluids, fluid, slotStack.getCount());
-                }
+                mergeFluid(fluids, fluid, slotStack.getCount());
             }
         }
 
@@ -177,7 +175,7 @@ public abstract class PackageEntityMixin implements IHaveGoggleInformation {
 
     private boolean fluidlogistics$tryPlaceFluidFromTank(ServerLevel level, ItemStack tankStack) {
         FluidStack fluid = CompressedTankItem.getFluid(tankStack);
-        if (fluid.isEmpty() || fluid.getAmount() < 1000) {
+        if (fluid.getAmount() < 1000) {
             return false;
         }
 

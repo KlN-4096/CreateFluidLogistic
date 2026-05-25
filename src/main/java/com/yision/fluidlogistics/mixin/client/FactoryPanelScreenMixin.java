@@ -82,10 +82,8 @@ public abstract class FactoryPanelScreenMixin extends AbstractSimiScreen {
 
         if (FluidGaugeHelper.isVirtualFluidFilter(itemStack.stack)) {
             FluidStack fluid = CompressedTankItem.getFluid(itemStack.stack);
-            if (!fluid.isEmpty()) {
-                fluidlogistics$isVirtualTank = true;
-                fluidlogistics$cachedFluid = fluid;
-            }
+            fluidlogistics$isVirtualTank = true;
+            fluidlogistics$cachedFluid = fluid;
         }
     }
 
@@ -420,33 +418,31 @@ public abstract class FactoryPanelScreenMixin extends AbstractSimiScreen {
             List<Component> tooltips, int mouseX, int mouseY) {
         if (outputConfig.stack.getItem() instanceof CompressedTankItem && CompressedTankItem.isVirtual(outputConfig.stack)) {
             FluidStack fluid = CompressedTankItem.getFluid(outputConfig.stack);
-            if (!fluid.isEmpty()) {
-                String fluidName = fluid.getHoverName().getString();
-                String amountText = FluidAmountHelper.formatPrecise(outputConfig.count);
-                
-                MutableComponent c1 = CreateLang
-                    .translate("gui.factory_panel.expected_output", 
-                        CreateLang.text(fluidName + " x" + amountText).string())
-                    .color(ScrollInput.HEADER_RGB)
-                    .component();
-                MutableComponent c2 = CreateLang.translate("gui.factory_panel.expected_output_tip")
-                    .style(ChatFormatting.GRAY)
-                    .component();
-                MutableComponent c3 = CreateLang.translate("gui.factory_panel.expected_output_tip_1")
-                    .style(ChatFormatting.GRAY)
-                    .component();
-                MutableComponent c4 = CreateLang.translate("gui.factory_panel.expected_output_tip_2")
+            String fluidName = fluid.getHoverName().getString();
+            String amountText = FluidAmountHelper.formatPrecise(outputConfig.count);
+
+            MutableComponent c1 = CreateLang
+                .translate("gui.factory_panel.expected_output",
+                    CreateLang.text(fluidName + " x" + amountText).string())
+                .color(ScrollInput.HEADER_RGB)
+                .component();
+            MutableComponent c2 = CreateLang.translate("gui.factory_panel.expected_output_tip")
+                .style(ChatFormatting.GRAY)
+                .component();
+            MutableComponent c3 = CreateLang.translate("gui.factory_panel.expected_output_tip_1")
+                .style(ChatFormatting.GRAY)
+                .component();
+            MutableComponent c4 = CreateLang.translate("gui.factory_panel.expected_output_tip_2")
+                .style(ChatFormatting.DARK_GRAY)
+                .style(ChatFormatting.ITALIC)
+                .component();
+            MutableComponent c5 = CreateLang.translate("fluidlogistics.scroll_precise_amount")
                     .style(ChatFormatting.DARK_GRAY)
                     .style(ChatFormatting.ITALIC)
                     .component();
-                MutableComponent c5 = CreateLang.translate("fluidlogistics.scroll_precise_amount")
-                        .style(ChatFormatting.DARK_GRAY)
-                        .style(ChatFormatting.ITALIC)
-                        .component();
-                
-                graphics.renderComponentTooltip(font, List.of(c1, c2, c3, c4, c5), mouseX, mouseY);
-                return;
-            }
+
+            graphics.renderComponentTooltip(font, List.of(c1, c2, c3, c4, c5), mouseX, mouseY);
+            return;
         }
         graphics.renderComponentTooltip(font, tooltips, mouseX, mouseY);
     }
@@ -467,25 +463,23 @@ public abstract class FactoryPanelScreenMixin extends AbstractSimiScreen {
         ItemStack filter = behaviour.getFilter();
         if (filter.getItem() instanceof CompressedTankItem && CompressedTankItem.isVirtual(filter)) {
             FluidStack fluid = CompressedTankItem.getFluid(filter);
-            if (!fluid.isEmpty()) {
-                int promised = behaviour.getPromised();
-                if (promised > 0) {
-                    String fluidName = fluid.getHoverName().getString();
-                    String amountText = FluidAmountHelper.formatPrecise(promised);
-                    List<Component> newTooltips = List.of(
-                        CreateLang.translate("gui.factory_panel.promised_items")
-                            .color(ScrollInput.HEADER_RGB)
-                            .component(),
-                        CreateLang.text(fluidName + " x" + amountText)
-                            .component(),
-                        CreateLang.translate("gui.factory_panel.left_click_reset")
-                            .style(ChatFormatting.DARK_GRAY)
-                            .style(ChatFormatting.ITALIC)
-                            .component()
-                    );
-                    graphics.renderComponentTooltip(font, newTooltips, mouseX, mouseY);
-                    return;
-                }
+            int promised = behaviour.getPromised();
+            if (promised > 0) {
+                String fluidName = fluid.getHoverName().getString();
+                String amountText = FluidAmountHelper.formatPrecise(promised);
+                List<Component> newTooltips = List.of(
+                    CreateLang.translate("gui.factory_panel.promised_items")
+                        .color(ScrollInput.HEADER_RGB)
+                        .component(),
+                    CreateLang.text(fluidName + " x" + amountText)
+                        .component(),
+                    CreateLang.translate("gui.factory_panel.left_click_reset")
+                        .style(ChatFormatting.DARK_GRAY)
+                        .style(ChatFormatting.ITALIC)
+                        .component()
+                );
+                graphics.renderComponentTooltip(font, newTooltips, mouseX, mouseY);
+                return;
             }
         }
         graphics.renderComponentTooltip(font, tooltips, mouseX, mouseY);

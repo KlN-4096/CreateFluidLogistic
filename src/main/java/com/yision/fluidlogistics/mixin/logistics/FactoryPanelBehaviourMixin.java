@@ -465,10 +465,7 @@ public abstract class FactoryPanelBehaviourMixin {
         }
         
         FluidStack fluid = CompressedTankItem.getFluid(filter);
-        if (fluid.isEmpty()) {
-            return;
-        }
-        
+
         if (!targetedBy.isEmpty() && self.getAmount() == 0) {
             cir.setReturnValue(CreateLang.translate("gui.factory_panel.no_target_amount_set")
                 .style(ChatFormatting.RED)

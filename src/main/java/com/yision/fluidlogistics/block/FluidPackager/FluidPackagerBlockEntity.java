@@ -145,9 +145,9 @@ public class FluidPackagerBlockEntity extends SmartBlockEntity implements Cleara
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
         behaviours.add(fluidTarget = new TankManipulationBehaviour(this, InterfaceProvider.oppositeOfBlockFacing())
-            .withFilter(this::supportsBlockEntity));
+            .withFilter(this::supportsFluidTarget));
         behaviours.add(itemTarget = new InvManipulationBehaviour(this, InterfaceProvider.oppositeOfBlockFacing())
-            .withFilter(this::supportsBlockEntity));
+            .withFilter(this::supportsItemTarget));
         behaviours.add(invVersionTracker = new VersionedInventoryTrackerBehaviour(this));
         behaviours.add(advancements = new AdvancementBehaviour(this, AllAdvancements.PACKAGER));
     }
@@ -185,7 +185,11 @@ public class FluidPackagerBlockEntity extends SmartBlockEntity implements Cleara
         return "";
     }
 
-    private boolean supportsBlockEntity(BlockEntity target) {
+    private boolean supportsFluidTarget(@Nullable BlockEntity target) {
+        return !(target instanceof PortableFluidInterfaceBlockEntity);
+    }
+
+    private boolean supportsItemTarget(@Nullable BlockEntity target) {
         return target != null && !(target instanceof PortableFluidInterfaceBlockEntity);
     }
 
@@ -252,17 +256,7 @@ public class FluidPackagerBlockEntity extends SmartBlockEntity implements Cleara
                 IFluidHandler fluidHandler = fluidTarget.getInventory();
                 BlockEntity targetBlockEntity = getFluidTargetBlockEntity();
                 boolean insertedAll = fluidHandler != null
-                    && FluidInsertionHelper.canAcceptAll(targetBlockEntity, fluidHandler, pendingFluidsToInsert);
-
-                if (insertedAll) {
-                    for (FluidStack fluid : pendingFluidsToInsert) {
-                        int filled = fluidHandler.fill(fluid.copy(), FluidAction.EXECUTE);
-                        if (filled != fluid.getAmount()) {
-                            insertedAll = false;
-                            break;
-                        }
-                    }
-                }
+                    && FluidInsertionHelper.insertAllOrNothing(targetBlockEntity, fluidHandler, pendingFluidsToInsert);
 
                 if (!insertedAll && !previouslyUnwrapped.isEmpty()) {
                     queuedExitingPackages.add(0, new BigItemStack(previouslyUnwrapped.copy(), 1));
@@ -640,9 +634,7 @@ public class FluidPackagerBlockEntity extends SmartBlockEntity implements Cleara
         List<FluidStack> packageFluids = new LinkedList<>();
         for (ItemStack item : items) {
             FluidStack fluid = CompressedTankItem.getFluid(item);
-            if (!fluid.isEmpty()) {
-                packageFluids.add(fluid.copy());
-            }
+            packageFluids.add(fluid.copy());
         }
         return packageFluids;
     }
@@ -819,8 +811,6 @@ public class FluidPackagerBlockEntity extends SmartBlockEntity implements Cleara
             return null;
 
         FluidStack requestedFluid = CompressedTankItem.getFluid(stack);
-        if (requestedFluid.isEmpty())
-            return null;
 
         getAvailableItems();
         int availableAmount = availableFluidSnapshot.getOrDefault(FluidTypeKey.of(requestedFluid), 0);
@@ -854,10 +844,6 @@ public class FluidPackagerBlockEntity extends SmartBlockEntity implements Cleara
         }
 
         FluidStack requestedFluid = CompressedTankItem.getFluid(requestedStack);
-        if (requestedFluid.isEmpty()) {
-            queuedRequests.remove(0);
-            return;
-        }
 
         int remainingCount = nextRequest.getCount();
         String fixedAddress = nextRequest.address();

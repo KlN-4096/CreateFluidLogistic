@@ -52,11 +52,7 @@ public abstract class InventorySummaryMixin {
         
         if (CompressedTankItem.isVirtual(stack)) {
             net.neoforged.neoforge.fluids.FluidStack targetFluid = CompressedTankItem.getFluid(stack);
-            if (targetFluid.isEmpty()) {
-                ci.cancel();
-                return;
-            }
-            
+
             for (BigItemStack existing : stacks) {
                 if (fluidlogistics$matchesVirtualFluid(existing.stack, targetFluid)) {
                     if (existing.count < BigItemStack.INF) {
@@ -121,10 +117,7 @@ public abstract class InventorySummaryMixin {
         }
         
         net.neoforged.neoforge.fluids.FluidStack targetFluid = CompressedTankItem.getFluid(stack);
-        if (targetFluid.isEmpty()) {
-            return;
-        }
-        
+
         List<BigItemStack> list = items.get(stack.getItem());
         if (list == null) {
             cir.setReturnValue(0);
@@ -157,10 +150,7 @@ public abstract class InventorySummaryMixin {
         }
         
         net.neoforged.neoforge.fluids.FluidStack targetFluid = CompressedTankItem.getFluid(stack);
-        if (targetFluid.isEmpty()) {
-            return;
-        }
-        
+
         List<BigItemStack> stacks = items.get(stack.getItem());
         if (stacks == null) {
             cir.setReturnValue(false);
@@ -191,10 +181,7 @@ public abstract class InventorySummaryMixin {
         }
         
         net.neoforged.neoforge.fluids.FluidStack fluidInSummary = CompressedTankItem.getFluid(stackInSummary);
-        if (fluidInSummary.isEmpty()) {
-            return false;
-        }
-        
+
         return net.neoforged.neoforge.fluids.FluidStack.isSameFluidSameComponents(fluidInSummary, targetFluid);
     }
 
@@ -210,11 +197,7 @@ public abstract class InventorySummaryMixin {
         
         net.neoforged.neoforge.fluids.FluidStack fluidInSummary = CompressedTankItem.getFluid(stackInSummary);
         net.neoforged.neoforge.fluids.FluidStack targetFluid = CompressedTankItem.getFluid(targetStack);
-        
-        if (fluidInSummary.isEmpty() || targetFluid.isEmpty()) {
-            return false;
-        }
-        
+
         return net.neoforged.neoforge.fluids.FluidStack.isSameFluidSameComponents(fluidInSummary, targetFluid)
                 && fluidInSummary.getAmount() == targetFluid.getAmount();
     }

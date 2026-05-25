@@ -157,25 +157,23 @@ public abstract class RedstoneRequesterScreenMixin extends AbstractSimiContainer
                 ItemStack ghostStack = menu.ghostInventory.getStackInSlot(slotIndex);
                 if (ghostStack.getItem() instanceof CompressedTankItem && CompressedTankItem.isVirtual(ghostStack)) {
                     FluidStack fluid = CompressedTankItem.getFluid(ghostStack);
-                    if (!fluid.isEmpty()) {
-                        int amount = amounts.get(slotIndex);
-                        String amountText = FluidAmountHelper.formatPrecise(amount);
-                        List<Component> tooltip = new ArrayList<>();
-                        tooltip.add(CreateLang.translate("gui.factory_panel.send_item", 
-                                CreateLang.text(fluid.getHoverName().getString())
-                                    .add(CreateLang.text(" x" + amountText)))
-                            .color(ScrollInput.HEADER_RGB)
+                    int amount = amounts.get(slotIndex);
+                    String amountText = FluidAmountHelper.formatPrecise(amount);
+                    List<Component> tooltip = new ArrayList<>();
+                    tooltip.add(CreateLang.translate("gui.factory_panel.send_item",
+                            CreateLang.text(fluid.getHoverName().getString())
+                                .add(CreateLang.text(" x" + amountText)))
+                        .color(ScrollInput.HEADER_RGB)
+                        .component());
+                    tooltip.add(CreateLang.translate("gui.factory_panel.scroll_to_change_amount")
+                            .style(ChatFormatting.DARK_GRAY)
+                            .style(ChatFormatting.ITALIC)
                             .component());
-                        tooltip.add(CreateLang.translate("gui.factory_panel.scroll_to_change_amount")
-                                .style(ChatFormatting.DARK_GRAY)
-                                .style(ChatFormatting.ITALIC)
-                                .component());
-                        tooltip.add(CreateLang.translate("fluidlogistics.scroll_precise_amount")
-                                .style(ChatFormatting.DARK_GRAY)
-                                .style(ChatFormatting.ITALIC)
-                                .component());
-                        cir.setReturnValue(tooltip);
-                    }
+                    tooltip.add(CreateLang.translate("fluidlogistics.scroll_precise_amount")
+                            .style(ChatFormatting.DARK_GRAY)
+                            .style(ChatFormatting.ITALIC)
+                            .component());
+                    cir.setReturnValue(tooltip);
                 }
             }
         }

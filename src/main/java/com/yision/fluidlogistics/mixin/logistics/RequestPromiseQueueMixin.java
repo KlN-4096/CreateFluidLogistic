@@ -47,10 +47,7 @@ public abstract class RequestPromiseQueueMixin {
         }
         
         FluidStack targetFluid = CompressedTankItem.getFluid(stack);
-        if (targetFluid.isEmpty()) {
-            return;
-        }
-        
+
         List<RequestPromise> list = promisesByItem.get(stack.getItem());
         if (list == null) {
             cir.setReturnValue(0);
@@ -100,10 +97,7 @@ public abstract class RequestPromiseQueueMixin {
         }
         
         FluidStack targetFluid = CompressedTankItem.getFluid(stack);
-        if (targetFluid.isEmpty()) {
-            return;
-        }
-        
+
         List<RequestPromise> list = promisesByItem.get(stack.getItem());
         if (list == null) {
             ci.cancel();
@@ -146,10 +140,7 @@ public abstract class RequestPromiseQueueMixin {
         }
         
         FluidStack targetFluid = CompressedTankItem.getFluid(stack);
-        if (targetFluid.isEmpty()) {
-            return;
-        }
-        
+
         List<RequestPromise> list = promisesByItem.get(stack.getItem());
         if (list == null) {
             ci.cancel();
@@ -198,10 +189,7 @@ public abstract class RequestPromiseQueueMixin {
         }
         
         FluidStack promiseFluid = CompressedTankItem.getFluid(promiseStack);
-        if (promiseFluid.isEmpty()) {
-            return false;
-        }
-        
+
         return FluidStack.isSameFluidSameComponents(promiseFluid, targetFluid);
     }
 }

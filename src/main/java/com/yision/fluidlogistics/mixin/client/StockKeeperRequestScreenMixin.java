@@ -87,10 +87,7 @@ public abstract class StockKeeperRequestScreenMixin {
 
         ItemStack stack = entry.stack;
         if (stack.getItem() instanceof CompressedTankItem && CompressedTankItem.isVirtual(stack)) {
-            FluidStack fluid = CompressedTankItem.getFluid(stack);
-            if (!fluid.isEmpty()) {
-                fluidlogistics$isCompressedTank = true;
-            }
+            fluidlogistics$isCompressedTank = true;
         }
     }
 

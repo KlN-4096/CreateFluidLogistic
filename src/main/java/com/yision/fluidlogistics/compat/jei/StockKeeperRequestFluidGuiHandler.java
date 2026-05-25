@@ -28,9 +28,7 @@ public class StockKeeperRequestFluidGuiHandler implements IGuiContainerHandler<S
                             && stack.getItem() instanceof CompressedTankItem
                             && CompressedTankItem.isVirtual(stack)) {
                         FluidStack fluid = CompressedTankItem.getFluid(stack);
-                        if (!fluid.isEmpty()) {
-                            ingredient = fluid.copy();
-                        }
+                        ingredient = fluid.copy();
                     }
 
                     return CreateJEI.runtime.getIngredientManager()

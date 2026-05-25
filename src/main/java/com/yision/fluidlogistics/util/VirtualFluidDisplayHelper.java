@@ -12,8 +12,7 @@ public final class VirtualFluidDisplayHelper {
 
     public static boolean shouldDisplayAsFluid(ItemStack stack) {
         return stack.getItem() instanceof CompressedTankItem
-                && CompressedTankItem.isVirtual(stack)
-                && !CompressedTankItem.getFluid(stack).isEmpty();
+                && CompressedTankItem.isVirtual(stack);
     }
 
     public static FluidStack getDisplayFluid(ItemStack stack) {
@@ -21,8 +20,7 @@ public final class VirtualFluidDisplayHelper {
     }
 
     public static boolean shouldDisplayAsFluidInPackage(ItemStack stack) {
-        return stack.getItem() instanceof CompressedTankItem
-                && !CompressedTankItem.getFluid(stack).isEmpty();
+        return stack.getItem() instanceof CompressedTankItem;
     }
 
     public static FluidStack getPackageDisplayFluid(ItemStack stack) {
