@@ -14,6 +14,8 @@ import com.simibubi.create.content.logistics.box.PackageEntity;
 import com.simibubi.create.content.logistics.box.PackageItem;
 import com.simibubi.create.foundation.utility.CreateLang;
 import com.simibubi.create.foundation.utility.FluidFormatter;
+import com.yision.fluidlogistics.compat.CompatMods;
+import com.yision.fluidlogistics.compat.createenchantmentindustry.CreateEnchantmentIndustryCompat;
 import com.yision.fluidlogistics.config.Config;
 import com.yision.fluidlogistics.item.CompressedTankItem;
 import com.yision.fluidlogistics.item.FluidPackageItem;
@@ -90,6 +92,11 @@ public abstract class PackageEntityMixin implements IHaveGoggleInformation {
             }
 
             if (itemStack.getItem() instanceof CompressedTankItem) {
+                if (CompatMods.createEnchantmentIndustryLoaded()
+                    && CreateEnchantmentIndustryCompat.tryDropExperienceFromTank(level, packageEntity.position(), itemStack)) {
+                    continue;
+                }
+
                 if (!selectedFluid) {
                     selectedFluid = fluidlogistics$tryPlaceFluidFromTank(level, itemStack);
                 }

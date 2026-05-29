@@ -26,6 +26,7 @@ repositories {
     maven { url "https://mvn.devos.one/snapshots" }
     maven { url "https://maven.blamejared.com" }
     maven { url "https://maven.theillusivec4.top/" }
+    maven { url "https://maven.dragons.plus/releases" }
     maven { url "https://www.cursemaven.com" }
     maven { url "https://api.modrinth.com/maven" }
     maven { url "https://raw.githubusercontent.com/Fuzss/modresources/main/maven" }
@@ -129,12 +130,14 @@ dependencies {
     runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${flywheel_minecraft_version}:${flywheel_version}")
     runtimeOnly("dev.engine-room.vanillin:vanillin-neoforge-${flywheel_minecraft_version}:${vanillin_version}")
     implementation("com.tterrag.registrate:Registrate:${registrate_version}")
-    implementation("net.createmod.ponder:Ponder-NeoForge-${minecraft_version}:${ponder_version}")
+    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}") { transitive false }
     compileOnly("mezz.jei:jei-${jei_minecraft_version}-neoforge:${jei_version}")
     localRuntime("mezz.jei:jei-${jei_minecraft_version}-neoforge:${jei_version}")
     localImplementation("maven.modrinth:geckolib:${geckolib_version}")
     compileOnly("maven.modrinth:jade:${jade_version}+neoforge")
+    compileOnly("curse.maven:create-enchantment-industry-688768:7970748")
+    compileOnly("plus.dragons.createdragonsplus:create-dragons-plus-${minecraft_version}:1.10.0")
     testImplementation(platform("org.junit:junit-bom:5.12.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

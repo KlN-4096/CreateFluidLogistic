@@ -103,7 +103,21 @@ config="${mod_id}.mixins.json"
 [[dependencies.${mod_id}]]
     modId="fluid"
     type="optional"
-    versionRange="[9.9.9,)"
+    versionRange="[1.2.5,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="create_enchantment_industry"
+    type="optional"
+    versionRange="[2.3.1,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="create_dragons_plus"
+    type="optional"
+    versionRange="[1.10.0,)"
     ordering="AFTER"
     side="BOTH"
 

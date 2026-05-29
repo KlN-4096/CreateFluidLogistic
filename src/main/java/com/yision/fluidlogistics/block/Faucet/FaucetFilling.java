@@ -5,6 +5,8 @@ import com.simibubi.create.AllRecipeTypes;
 import com.simibubi.create.content.fluids.transfer.FillingRecipe;
 import com.simibubi.create.content.fluids.transfer.GenericItemFilling;
 import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipe;
+import com.yision.fluidlogistics.compat.CompatMods;
+import com.yision.fluidlogistics.compat.createenchantmentindustry.CreateEnchantmentIndustryCompat;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -33,6 +35,11 @@ public final class FaucetFilling {
             return true;
         }
 
+        if (CompatMods.createEnchantmentIndustryLoaded()
+            && CreateEnchantmentIndustryCompat.canRepairItem(stack)) {
+            return true;
+        }
+
         return GenericItemFilling.canItemBeFilled(level, stack);
     }
 
@@ -53,6 +60,13 @@ public final class FaucetFilling {
             SizedFluidIngredient requiredFluid = fillingRecipe.getRequiredFluid();
             if (requiredFluid.test(availableFluid)) {
                 return requiredFluid.amount();
+            }
+        }
+
+        if (CompatMods.createEnchantmentIndustryLoaded()) {
+            int repairAmount = CreateEnchantmentIndustryCompat.getRequiredRepairFluidAmount(level, stack, availableFluid);
+            if (repairAmount > 0) {
+                return repairAmount;
             }
         }
 
@@ -83,6 +97,13 @@ public final class FaucetFilling {
             availableFluid.shrink(requiredAmount);
             stack.shrink(1);
             return result;
+        }
+
+        if (CompatMods.createEnchantmentIndustryLoaded()) {
+            ItemStack repaired = CreateEnchantmentIndustryCompat.repairItemWithFluid(level, requiredAmount, stack, availableFluid);
+            if (!repaired.isEmpty()) {
+                return repaired;
+            }
         }
 
         return GenericItemFilling.fillItem(level, requiredAmount, stack, availableFluid);
