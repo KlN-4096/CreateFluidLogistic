@@ -116,6 +116,54 @@ public class CopperBasinBlockEntity extends BasinBlockEntity {
 	}
 
 	@Override
+	public float getTotalFluidUnits(float partialTicks) {
+		if (level != null && level.isClientSide)
+			return shouldRenderCopperBasinMixedSurfaceParticles()
+				? CopperBasinCapacity.RENDER_FULL_CAPACITY
+				: 0;
+
+		return super.getTotalFluidUnits(partialTicks);
+	}
+
+	private boolean shouldRenderCopperBasinMixedSurfaceParticles() {
+		List<FluidStack> fullFluids = new ArrayList<>(2);
+
+		if (!collectFullSlotFluids(inputTank, fullFluids))
+			return false;
+		if (!collectFullSlotFluids(outputTank, fullFluids))
+			return false;
+
+		if (fullFluids.size() != 2)
+			return false;
+
+		return !FluidStack.isSameFluidSameComponents(fullFluids.get(0), fullFluids.get(1));
+	}
+
+	private static boolean collectFullSlotFluids(SmartFluidTankBehaviour behaviour, List<FluidStack> fullFluids) {
+		if (behaviour == null)
+			return true;
+
+		IFluidHandler handler = behaviour.getCapability();
+		if (handler == null)
+			return true;
+
+		for (int tank = 0; tank < handler.getTanks(); tank++) {
+			FluidStack fluidStack = handler.getFluidInTank(tank);
+			if (fluidStack.isEmpty())
+				continue;
+
+			if (fluidStack.getAmount() != CopperBasinCapacity.SLOT_CAPACITY)
+				return false;
+
+			fullFluids.add(fluidStack);
+			if (fullFluids.size() > 2)
+				return false;
+		}
+
+		return true;
+	}
+
+	@Override
 	public void tick() {
 		super.tick();
 		if (level == null || level.isClientSide)

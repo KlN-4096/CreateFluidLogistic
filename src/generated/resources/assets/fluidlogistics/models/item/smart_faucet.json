@@ -1,6 +1,18 @@
 {
   "parent": "fluidlogistics:block/smart_faucet/smart_faucet",
   "display": {
+    "fixed": {
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "translation": [
+        0,
+        0,
+        -2
+      ]
+    },
     "gui": {
       "rotation": [
         30,

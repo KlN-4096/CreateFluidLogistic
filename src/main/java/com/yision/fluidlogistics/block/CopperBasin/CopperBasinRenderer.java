@@ -25,12 +25,12 @@ public class CopperBasinRenderer extends BasinRenderer {
 		SmartFluidTankBehaviour inputFluids = basin.getBehaviour(SmartFluidTankBehaviour.INPUT);
 		SmartFluidTankBehaviour outputFluids = basin.getBehaviour(SmartFluidTankBehaviour.OUTPUT);
 		SmartFluidTankBehaviour[] tanks = { inputFluids, outputFluids };
-		float totalUnits = basin.getTotalFluidUnits(partialTicks);
+
+		float totalUnits = getRenderedFluidUnits(tanks, partialTicks);
 		if (totalUnits < 1)
 			return 0;
 
-		float fluidLevel = Mth.clamp(totalUnits / CopperBasinCapacity.TOTAL_CAPACITY, 0, 1);
-
+		float fluidLevel = Mth.clamp(totalUnits / CopperBasinCapacity.RENDER_FULL_CAPACITY, 0, 1);
 		fluidLevel = 1 - ((1 - fluidLevel) * (1 - fluidLevel));
 
 		float xMin = 2 / 16f;
@@ -61,5 +61,30 @@ public class CopperBasinRenderer extends BasinRenderer {
 		}
 
 		return yMax;
+	}
+
+	private static float getRenderedFluidUnits(SmartFluidTankBehaviour[] tanks, float partialTicks) {
+		int renderedFluids = 0;
+		float totalUnits = 0;
+
+		for (SmartFluidTankBehaviour behaviour : tanks) {
+			if (behaviour == null)
+				continue;
+			for (TankSegment tankSegment : behaviour.getTanks()) {
+				if (tankSegment.getRenderedFluid().isEmpty())
+					continue;
+				float units = tankSegment.getTotalUnits(partialTicks);
+				if (units < 1)
+					continue;
+				totalUnits += units;
+				renderedFluids++;
+			}
+		}
+
+		if (renderedFluids == 0)
+			return 0;
+		if (totalUnits < 1)
+			return 0;
+		return totalUnits;
 	}
 }

@@ -102,7 +102,11 @@ public class AllBlocks {
                 .transform(ItemDisplayContext.GUI)
                 .rotation(30, -135, 0)
                 .translation(2.5f, -1.25f, 0)
-                .scale(0.625f))
+                .scale(0.625f)
+                .end()
+                .transform(ItemDisplayContext.FIXED)
+                .translation(0, 0, -2)
+                .scale(0.5f))
             .build()
             .register();
 
@@ -121,7 +125,11 @@ public class AllBlocks {
                 .transform(ItemDisplayContext.GUI)
                 .rotation(30, -135, 0)
                 .translation(2.5f, -1.25f, 0)
-                .scale(0.625f))
+                .scale(0.625f)
+                .end()
+                .transform(ItemDisplayContext.FIXED)
+                .translation(0, 0, -2)
+                .scale(0.5f))
             .build()
             .register();
 
