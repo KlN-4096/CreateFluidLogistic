@@ -29,7 +29,6 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 public class CopperBasinBlockEntity extends BasinBlockEntity {
 
@@ -102,15 +101,24 @@ public class CopperBasinBlockEntity extends BasinBlockEntity {
 		if (outputFluids.isEmpty())
 			return super.acceptOutputs(outputItems, outputFluids, simulate);
 
-		outputInventory.allowInsertion();
 		outputTank.allowInsertion();
 		try {
-			if (!acceptItemsIntoOutputInventory(outputItems, simulate))
-				return false;
 			IFluidHandler targetTank = outputTank.getCapability();
-			return targetTank != null && acceptFluidsIntoOutputTank(outputFluids, simulate, targetTank);
+			if (targetTank == null)
+				return false;
+
+			if (!super.acceptOutputs(outputItems, List.of(), true))
+				return false;
+			if (!acceptFluidsIntoOutputTank(outputFluids, true, targetTank))
+				return false;
+
+			if (simulate)
+				return true;
+
+			if (!super.acceptOutputs(outputItems, List.of(), false))
+				return false;
+			return acceptFluidsIntoOutputTank(outputFluids, false, targetTank);
 		} finally {
-			outputInventory.forbidInsertion();
 			outputTank.forbidInsertion();
 		}
 	}
@@ -229,14 +237,6 @@ public class CopperBasinBlockEntity extends BasinBlockEntity {
 			if (fillTarget(targetTank, fluidStack.copy(), action) != fluidStack.getAmount())
 				return false;
 		}
-		return true;
-	}
-
-	private boolean acceptItemsIntoOutputInventory(List<ItemStack> outputItems, boolean simulate) {
-		for (ItemStack itemStack : outputItems)
-			if (!ItemHandlerHelper.insertItemStacked(outputInventory, itemStack.copy(), simulate)
-				.isEmpty())
-				return false;
 		return true;
 	}
 
