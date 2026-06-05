@@ -8,6 +8,7 @@ import net.createmod.catnip.render.DefaultSuperRenderTypeBuffer;
 import net.createmod.catnip.render.SuperRenderTypeBuffer;
 import com.yision.fluidlogistics.ponder.FluidLogisticsPonderPlugin;
 import com.yision.fluidlogistics.registry.AllSpriteShifts;
+import com.yision.fluidlogistics.registry.AllFluidLogisticsParticleTypes;
 import net.createmod.ponder.foundation.PonderIndex;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.ModelResourceLocation;
@@ -20,6 +21,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
@@ -37,6 +39,10 @@ public class FluidLogisticsClient {
     static void onClientSetup(FMLClientSetupEvent event) {
         AllSpriteShifts.register();
         PonderIndex.addPlugin(new FluidLogisticsPonderPlugin());
+        event.enqueueWork(() -> {
+            com.simibubi.create.content.contraptions.wrench.RadialWrenchMenu
+                .registerBlacklistedBlock(com.yision.fluidlogistics.registry.AllBlocks.MECHANICAL_FLUID_GUN.getId());
+        });
         FluidLogistics.LOGGER.info("HELLO FROM CLIENT SETUP");
         FluidLogistics.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
     }
@@ -48,6 +54,11 @@ public class FluidLogisticsClient {
         }
 
         com.yision.fluidlogistics.registry.AllPartialModels.register();
+    }
+
+    @SubscribeEvent
+    static void onRegisterParticleProviders(RegisterParticleProvidersEvent event) {
+        AllFluidLogisticsParticleTypes.registerFactories(event);
     }
 
     @EventBusSubscriber(modid = FluidLogistics.MODID, value = Dist.CLIENT)

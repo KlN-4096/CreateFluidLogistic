@@ -38,6 +38,9 @@ import com.yision.fluidlogistics.block.SmartHopper.SmartHopperBlock;
 import com.yision.fluidlogistics.block.SmartHopper.SmartHopperGenerator;
 import com.yision.fluidlogistics.block.FluidPump.FluidPumpBlock;
 import com.yision.fluidlogistics.block.FluidPump.FluidPumpGenerator;
+import com.yision.fluidlogistics.block.MechanicalFluidGun.MechanicalFluidGunBlock;
+import com.yision.fluidlogistics.block.MechanicalFluidGun.MechanicalFluidGunGenerator;
+import com.yision.fluidlogistics.block.MechanicalFluidGun.MechanicalFluidGunItem;
 import com.yision.fluidlogistics.block.InfiniteFluidTank.InfiniteFluidTankBlock;
 import com.yision.fluidlogistics.block.WaterContainingCopperCasing.WaterContainingCopperCasingBlock;
 import com.yision.fluidlogistics.block.CopperBasin.CopperBasinBlock;
@@ -269,6 +272,20 @@ public class AllBlocks {
             .onRegister(b -> MovementBehaviour.REGISTRY.register(b, new BasinMovementBehaviour()))
             .item()
             .model(AssetLookup.customBlockItemModel("_", "block"))
+            .build()
+            .register();
+
+    public static final BlockEntry<MechanicalFluidGunBlock> MECHANICAL_FLUID_GUN =
+        REGISTRATE.block("mechanical_fluid_gun", MechanicalFluidGunBlock::new)
+            .initialProperties(SharedProperties::copperMetal)
+            .properties(p -> p.noOcclusion().isRedstoneConductor(($1, $2, $3) -> false))
+            .properties(p -> p.mapColor(MapColor.TERRACOTTA_LIGHT_GRAY).sound(SoundType.COPPER))
+            .transform(pickaxeOnly())
+            .setData(ProviderType.LANG, NonNullBiConsumer.noop())
+            .addLayer(() -> RenderType::cutoutMipped)
+            .blockstate(MechanicalFluidGunGenerator::generate)
+            .item(MechanicalFluidGunItem::new)
+            .model(AssetLookup::customItemModel)
             .build()
             .register();
 

@@ -29,6 +29,8 @@ import com.yision.fluidlogistics.registry.AllDataComponents;
 import com.yision.fluidlogistics.registry.AllItems;
 import com.yision.fluidlogistics.registry.AllConditionCodecs;
 import com.yision.fluidlogistics.registry.AllFluidAttributeTypes;
+import com.yision.fluidlogistics.registry.FluidLogisticsUnpackingHandlers;
+import com.yision.fluidlogistics.registry.AllFluidLogisticsParticleTypes;
 import com.yision.fluidlogistics.config.FeatureToggle;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -87,6 +89,7 @@ public class FluidLogistics {
         AllConditionCodecs.register(modEventBus);
         AllDataComponents.register(modEventBus);
         AllFluidAttributeTypes.REGISTER.register(modEventBus);
+        AllFluidLogisticsParticleTypes.register(modEventBus);
         AllBlocks.register();
         AllBlockEntities.register();
         AllItems.register();
@@ -108,7 +111,9 @@ public class FluidLogistics {
             FluidLogisticsPackets.register();
             ArmInteractionPointType.init();
             com.yision.fluidlogistics.registry.AllMountedStorageTypes.register();
+            FluidLogisticsUnpackingHandlers.registerDefaults();
             BlockStressValues.IMPACTS.register(AllBlocks.FLUID_PUMP.get(), () -> 8.0);
+            BlockStressValues.IMPACTS.register(AllBlocks.MECHANICAL_FLUID_GUN.get(), () -> 2.0);
             LOGGER.info("FluidLogistics mounted storage registered!");
         });
     }

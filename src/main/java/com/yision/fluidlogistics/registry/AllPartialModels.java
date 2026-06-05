@@ -21,6 +21,13 @@ public class AllPartialModels {
 
     public static final PartialModel FLUID_PUMP_SHAFT = block("fluid_pump/shaft");
 
+    public static final PartialModel MECHANICAL_FLUID_GUN_BASE = block("mechanical_fluid_gun/base");
+    public static final PartialModel MECHANICAL_FLUID_GUN_COG = block("mechanical_fluid_gun/cog");
+    public static final PartialModel MECHANICAL_FLUID_GUN_GUN_BODY = block("mechanical_fluid_gun/gun_body");
+    public static final PartialModel MECHANICAL_FLUID_GUN_GUNPOINT_TOP = block("mechanical_fluid_gun/top");
+    public static final PartialModel MECHANICAL_FLUID_GUN_GUNPOINT_MIDDLE = block("mechanical_fluid_gun/middle");
+    public static final PartialModel MECHANICAL_FLUID_GUN_GUNPOINT_BOTTOM = block("mechanical_fluid_gun/bottom");
+
     public static final PartialModel FLUID_PACKAGE = item("rare_fluid_package");
     public static final PartialModel FLUID_PACKAGE_2 = item("rare_fluid_package_1");
     public static final PartialModel FLUID_PACKAGE_RIGGING = rigging("12x10");
@@ -59,7 +66,13 @@ public class AllPartialModels {
                 FAUCET_SOURCE_INTERFACE.get(Direction.NORTH).modelLocation(),
                 FAUCET_SOURCE_INTERFACE.get(Direction.SOUTH).modelLocation(),
                 FAUCET_SOURCE_INTERFACE.get(Direction.EAST).modelLocation(),
-                FAUCET_SOURCE_INTERFACE.get(Direction.WEST).modelLocation()
+                FAUCET_SOURCE_INTERFACE.get(Direction.WEST).modelLocation(),
+                MECHANICAL_FLUID_GUN_BASE.modelLocation(),
+                MECHANICAL_FLUID_GUN_COG.modelLocation(),
+                MECHANICAL_FLUID_GUN_GUN_BODY.modelLocation(),
+                MECHANICAL_FLUID_GUN_GUNPOINT_TOP.modelLocation(),
+                MECHANICAL_FLUID_GUN_GUNPOINT_MIDDLE.modelLocation(),
+                MECHANICAL_FLUID_GUN_GUNPOINT_BOTTOM.modelLocation()
         );
     }
 

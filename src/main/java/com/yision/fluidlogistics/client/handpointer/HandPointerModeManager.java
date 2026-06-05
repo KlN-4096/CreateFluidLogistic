@@ -12,7 +12,8 @@ public class HandPointerModeManager {
         DISPLAY_LINK,
         FROGPORT,
         MAILBOX,
-        LOGISTICS
+        LOGISTICS,
+        MECHANICAL_FLUID_GUN
     }
 
     private static SelectionMode currentMode = SelectionMode.NONE;
@@ -48,6 +49,8 @@ public class HandPointerModeManager {
             MailboxSelectionHandler.clearSelection();
         } else if (exiting == SelectionMode.LOGISTICS) {
             LogisticsSelectionHandler.clearSelection();
+        } else if (exiting == SelectionMode.MECHANICAL_FLUID_GUN) {
+            MechanicalFluidGunSelectionHandler.clearSelection();
         }
     }
 }

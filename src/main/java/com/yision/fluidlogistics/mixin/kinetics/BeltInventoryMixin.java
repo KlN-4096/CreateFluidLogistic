@@ -4,6 +4,7 @@ import com.simibubi.create.content.kinetics.belt.BeltBlockEntity;
 import com.simibubi.create.content.kinetics.belt.BeltHelper;
 import com.simibubi.create.content.kinetics.belt.behaviour.BeltProcessingBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.yision.fluidlogistics.block.MechanicalFluidGun.MechanicalFluidGunBlockEntity;
 import com.yision.fluidlogistics.block.SmartFaucet.SmartFaucetBlock;
 import net.minecraft.core.BlockPos;
 import org.spongepowered.asm.mixin.Final;
@@ -39,6 +40,12 @@ public class BeltInventoryMixin {
 
         if (cir.getReturnValue() != null) {
             return;
+        }
+
+        BeltProcessingBehaviour gunBehaviour =
+            MechanicalFluidGunBlockEntity.getBeltProcessingAt(belt.getLevel(), beltPos);
+        if (gunBehaviour != null) {
+            cir.setReturnValue(gunBehaviour);
         }
     }
 }

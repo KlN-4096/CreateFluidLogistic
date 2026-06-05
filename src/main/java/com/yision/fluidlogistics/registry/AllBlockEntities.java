@@ -26,6 +26,8 @@ import com.yision.fluidlogistics.block.SmartHopper.SmartHopperRenderer;
 import com.yision.fluidlogistics.block.WaterContainingCopperCasing.WaterContainingCopperCasingBlock;
 import com.yision.fluidlogistics.block.CopperBasin.CopperBasinBlockEntity;
 import com.yision.fluidlogistics.block.CopperBasin.CopperBasinRenderer;
+import com.yision.fluidlogistics.block.MechanicalFluidGun.MechanicalFluidGunBlockEntity;
+import com.yision.fluidlogistics.block.MechanicalFluidGun.MechanicalFluidGunRenderer;
 
 import static com.yision.fluidlogistics.FluidLogistics.REGISTRATE;
 
@@ -103,6 +105,12 @@ public class AllBlockEntities {
             .blockEntity("copper_basin", CopperBasinBlockEntity::new)
             .validBlocks(AllBlocks.COPPER_BASIN)
             .renderer(() -> CopperBasinRenderer::new)
+            .register();
+
+    public static final BlockEntityEntry<MechanicalFluidGunBlockEntity> MECHANICAL_FLUID_GUN = REGISTRATE
+            .blockEntity("mechanical_fluid_gun", MechanicalFluidGunBlockEntity::new)
+            .validBlocks(AllBlocks.MECHANICAL_FLUID_GUN)
+            .renderer(() -> MechanicalFluidGunRenderer::new)
             .register();
 
     public static void register() {

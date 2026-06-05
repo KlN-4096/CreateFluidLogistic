@@ -7,12 +7,15 @@ import com.simibubi.create.content.kinetics.chainConveyor.ChainConveyorInteracti
 import com.simibubi.create.content.kinetics.mechanicalArm.ArmBlockEntity;
 import com.simibubi.create.content.logistics.depot.EjectorBlockEntity;
 import com.simibubi.create.foundation.utility.CreateLang;
+import com.yision.fluidlogistics.block.MechanicalFluidGun.MechanicalFluidGunBlockEntity;
+import com.yision.fluidlogistics.client.MechanicalFluidGunItemSelectionHandler;
 import com.yision.fluidlogistics.item.HandPointerItem;
 import com.yision.fluidlogistics.network.HandPointerAuthorizeLogisticsNetworkPacket;
 import com.yision.fluidlogistics.network.HandPointerClearClipboardAddressPacket;
 import com.yision.fluidlogistics.network.HandPointerDisplayLinkConfigurationPacket;
 import com.yision.fluidlogistics.network.HandPointerModeEnteredPacket;
 import com.yision.fluidlogistics.network.HandPointerPackagerTogglePacket;
+import com.yision.fluidlogistics.network.MechanicalFluidGunPackets;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -61,6 +64,7 @@ public class HandPointerInteractionHandler {
             DisplayLinkSelectionHandler.clearHoverPreview();
             FrogportSelectionHandler.clearHoverPreview();
             MailboxSelectionHandler.clearHoverPreview();
+            MechanicalFluidGunSelectionHandler.clearHoverPreview();
             return;
         }
 
@@ -70,6 +74,7 @@ public class HandPointerInteractionHandler {
             DisplayLinkSelectionHandler.clearHoverPreview();
             FrogportSelectionHandler.clearHoverPreview();
             MailboxSelectionHandler.clearHoverPreview();
+            MechanicalFluidGunSelectionHandler.clearHoverPreview();
             return;
         }
 
@@ -78,6 +83,7 @@ public class HandPointerInteractionHandler {
             DisplayLinkSelectionHandler.clearHoverPreview();
             FrogportSelectionHandler.clearHoverPreview();
             MailboxSelectionHandler.clearHoverPreview();
+            MechanicalFluidGunSelectionHandler.clearHoverPreview();
             return;
         }
 
@@ -86,6 +92,7 @@ public class HandPointerInteractionHandler {
             DepotSelectionHandler.clearHoverPreview();
             FrogportSelectionHandler.clearHoverPreview();
             MailboxSelectionHandler.clearHoverPreview();
+            MechanicalFluidGunSelectionHandler.clearHoverPreview();
             return;
         }
 
@@ -95,6 +102,7 @@ public class HandPointerInteractionHandler {
             DepotSelectionHandler.clearHoverPreview();
             DisplayLinkSelectionHandler.clearHoverPreview();
             MailboxSelectionHandler.clearHoverPreview();
+            MechanicalFluidGunSelectionHandler.clearHoverPreview();
             return;
         }
 
@@ -104,6 +112,7 @@ public class HandPointerInteractionHandler {
             DepotSelectionHandler.clearHoverPreview();
             DisplayLinkSelectionHandler.clearHoverPreview();
             FrogportSelectionHandler.clearHoverPreview();
+            MechanicalFluidGunSelectionHandler.clearHoverPreview();
             return;
         }
 
@@ -116,10 +125,20 @@ public class HandPointerInteractionHandler {
             return;
         }
 
+        if (HandPointerModeManager.getCurrentMode() == HandPointerModeManager.SelectionMode.MECHANICAL_FLUID_GUN) {
+            MechanicalFluidGunSelectionHandler.renderSelection(mc);
+            DepotSelectionHandler.clearHoverPreview();
+            DisplayLinkSelectionHandler.clearHoverPreview();
+            FrogportSelectionHandler.clearHoverPreview();
+            MailboxSelectionHandler.clearHoverPreview();
+            return;
+        }
+
         DepotSelectionHandler.clearHoverPreview();
         DisplayLinkSelectionHandler.clearHoverPreview();
         FrogportSelectionHandler.renderHoveredConnectionPreview(mc);
         MailboxSelectionHandler.renderHoveredConnectionPreview(mc);
+        MechanicalFluidGunSelectionHandler.clearHoverPreview();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -143,7 +162,7 @@ public class HandPointerInteractionHandler {
         if (mc.hitResult instanceof BlockHitResult blockHitResult) {
             BlockPos pos = blockHitResult.getBlockPos();
             BlockState state = level.getBlockState(pos);
-            if (handleUseClick(player, level, pos, state, blockHitResult.getLocation())) {
+            if (handleUseClick(player, level, pos, state, blockHitResult)) {
                 event.setCanceled(true);
                 event.setSwingHand(true);
             }
@@ -182,7 +201,8 @@ public class HandPointerInteractionHandler {
         }
     }
 
-    private boolean handleUseClick(Player player, Level level, BlockPos pos, BlockState state, Vec3 clickLocation) {
+    private boolean handleUseClick(Player player, Level level, BlockPos pos, BlockState state, BlockHitResult hitResult) {
+        Vec3 clickLocation = hitResult.getLocation();
         BlockEntity blockEntity = level.getBlockEntity(pos);
         HandPointerPackagerClickRouting.PackagerClickAction packagerClickAction =
             HandPointerPackagerClickRouting.route(HandPointerModeManager.getCurrentMode(), isPackagerFamily(state));
@@ -227,7 +247,7 @@ public class HandPointerInteractionHandler {
         }
 
         if (HandPointerModeManager.isInSelectionMode()) {
-            handleSelectionClick(player, level, pos, state, clickLocation);
+            handleSelectionClick(player, level, pos, state, hitResult);
             return true;
         }
 
@@ -268,6 +288,15 @@ public class HandPointerInteractionHandler {
             return true;
         }
 
+        if (blockEntity instanceof MechanicalFluidGunBlockEntity) {
+            if (HandPointerModeManager.tryEnterMode(HandPointerModeManager.SelectionMode.MECHANICAL_FLUID_GUN)) {
+                MechanicalFluidGunSelectionHandler.enterMode(level, pos);
+                playBlockSound(level, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, 0.5f, 1.0f);
+                HandPointerModeEnteredPacket.send();
+            }
+            return true;
+        }
+
         if (blockEntity instanceof EjectorBlockEntity) {
             if (HandPointerModeManager.tryEnterMode(HandPointerModeManager.SelectionMode.DEPOT)) {
                 DepotSelectionHandler.enterMode(level, pos);
@@ -291,8 +320,46 @@ public class HandPointerInteractionHandler {
         return false;
     }
 
-    private void handleSelectionClick(Player player, Level level, BlockPos pos, BlockState state, Vec3 clickLocation) {
+    private void handleSelectionClick(Player player, Level level, BlockPos pos, BlockState state, BlockHitResult hitResult) {
+        Vec3 clickLocation = hitResult.getLocation();
         BlockEntity blockEntity = level.getBlockEntity(pos);
+
+        if (HandPointerModeManager.getCurrentMode() == HandPointerModeManager.SelectionMode.MECHANICAL_FLUID_GUN) {
+            if (MechanicalFluidGunSelectionHandler.isSelectedGun(pos)) {
+                int targetCount = MechanicalFluidGunSelectionHandler.getTargetCount();
+                boolean success = player.isShiftKeyDown()
+                    ? MechanicalFluidGunSelectionHandler.clearTarget()
+                    : MechanicalFluidGunSelectionHandler.submit();
+                if (success) {
+                    playBlockSound(level, pos, SoundEvents.NOTE_BLOCK_CHIME.value(), 0.8f, 1.0f);
+                    HandPointerModeManager.exitMode(player, level);
+                    if (!player.isShiftKeyDown()) {
+                        sendStatus(player, "fluidlogistics.mechanical_fluid_gun.target_summary",
+                            STATUS_CONNECTABLE_COLOR, targetCount);
+                    }
+                } else {
+                    playDenySound(level, pos);
+                }
+                return;
+            }
+
+            if (!MechanicalFluidGunSelectionHandler.isTargetSelected(pos)
+                && MechanicalFluidGunSelectionHandler.getTargetCount() >= MechanicalFluidGunPackets.TargetPacket.MAX_TARGETS) {
+                playDenySound(level, pos);
+                sendStatus(player, "fluidlogistics.mechanical_fluid_gun.target_limit_reached",
+                    STATUS_INVALID_COLOR, MechanicalFluidGunPackets.TargetPacket.MAX_TARGETS);
+                return;
+            }
+
+            if (MechanicalFluidGunSelectionHandler.setTarget(level, pos, hitResult.getDirection())) {
+                playBlockSound(level, pos, SoundEvents.LEVER_CLICK, 0.25f, 1.2f);
+                MechanicalFluidGunItemSelectionHandler.sendTargetStatus(player, state);
+            } else {
+                playDenySound(level, pos);
+                sendStatus(player, "fluidlogistics.hand_pointer.too_far", STATUS_INVALID_COLOR);
+            }
+            return;
+        }
 
         if (HandPointerModeManager.getCurrentMode() == HandPointerModeManager.SelectionMode.LOGISTICS) {
             if (!LogisticsSelectionHandler.isLogisticsBlockEntity(blockEntity)) {
@@ -467,6 +534,10 @@ public class HandPointerInteractionHandler {
 
     private static void sendStatus(Player player, String key, int color) {
         CreateLang.builder().translate(key).color(color).sendStatus(player);
+    }
+
+    private static void sendStatus(Player player, String key, int color, Object... args) {
+        CreateLang.builder().translate(key, args).color(color).sendStatus(player);
     }
 
     private static FactoryPanelBlock.PanelSlot getTargetedPanelSlot(BlockPos pos, BlockState state, Vec3 clickLocation) {
