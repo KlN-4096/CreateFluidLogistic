@@ -26,12 +26,15 @@ public enum WaterContainingCopperCasingFluidHandler implements IFluidHandler {
 
     @Override
     public boolean isFluidValid(int tank, FluidStack stack) {
-        return false;
+        return tank == 0 && !stack.isEmpty();
     }
 
     @Override
     public int fill(FluidStack resource, FluidAction action) {
-        return 0;
+        if (resource.isEmpty()) {
+            return 0;
+        }
+        return resource.getAmount();
     }
 
     @Override

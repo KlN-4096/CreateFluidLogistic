@@ -3,9 +3,13 @@ package com.yision.fluidlogistics.block.WaterContainingCopperCasing;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.IBE;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.renderer.SafeBlockEntityRenderer;
+import com.simibubi.create.foundation.fluid.FluidHelper;
 import com.yision.fluidlogistics.config.FeatureToggle;
 import com.yision.fluidlogistics.registry.AllBlockEntities;
+import java.util.List;
 import net.createmod.catnip.platform.NeoForgeCatnipServices;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -24,7 +28,6 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
@@ -56,6 +59,10 @@ public class WaterContainingCopperCasingBlock extends Block implements IWrenchab
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
         Player player, InteractionHand hand, BlockHitResult hitResult) {
+        Entity be = getBlockEntity(level, pos);
+        if (be != null && FluidHelper.tryEmptyItemIntoBE(level, player, hand, stack, be))
+            return ItemInteractionResult.SUCCESS;
+
         if (!stack.is(Items.BUCKET)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
@@ -85,10 +92,14 @@ public class WaterContainingCopperCasingBlock extends Block implements IWrenchab
         return AllBlockEntities.WATER_CONTAINING_COPPER_CASING.get();
     }
 
-    public static class Entity extends BlockEntity {
+    public static class Entity extends SmartBlockEntity {
 
         public Entity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
             super(type, pos, state);
+        }
+
+        @Override
+        public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
         }
     }
 

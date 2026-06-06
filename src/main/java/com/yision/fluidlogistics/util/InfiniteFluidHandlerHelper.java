@@ -38,6 +38,9 @@ public final class InfiniteFluidHandlerHelper {
 		if (fluid.isEmpty())
 			return false;
 
+		if (handler instanceof WaterContainingCopperCasingFluidHandler)
+			return true;
+
 		if (handler instanceof CreativeSmartFluidTank)
 			return true;
 
