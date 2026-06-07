@@ -71,6 +71,7 @@ class MechanicalFluidGunVisuals {
 		Vec3 motion = aimPoint.subtract(nozzle);
 		if (motion.lengthSqr() < 0.001) return;
 
+		double travelDistance = motion.length();
 		Vec3 direction = motion.normalize();
 		Vec3 side = direction.cross(new Vec3(0, 1, 0));
 		if (side.lengthSqr() < 0.001) {
@@ -86,7 +87,11 @@ class MechanicalFluidGunVisuals {
 			Vec3 offset = side.scale(randomSigned(level, radius))
 				.add(up.scale(randomSigned(level, radius)));
 			Vec3 pos = nozzle.lerp(aimPoint, trail).add(offset);
-			Vec3 velocity = direction.scale(STREAM_PARTICLE_SPEED + level.random.nextDouble() * STREAM_SPEED_VARIANCE)
+			double forwardSpeed = STREAM_PARTICLE_SPEED + level.random.nextDouble() * STREAM_SPEED_VARIANCE;
+			double remainingForwardDistance = travelDistance * (1.0 - trail);
+			double cappedForwardSpeed = Math.min(forwardSpeed,
+				remainingForwardDistance / MechanicalFluidGunStreamParticleData.LIFETIME);
+			Vec3 velocity = direction.scale(cappedForwardSpeed)
 				.add(side.scale(randomSigned(level, STREAM_SPREAD_SPEED)))
 				.add(up.scale(randomSigned(level, STREAM_SPREAD_SPEED)));
 

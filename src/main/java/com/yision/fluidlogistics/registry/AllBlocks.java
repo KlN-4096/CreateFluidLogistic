@@ -9,11 +9,14 @@ import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.Direction;
+import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -45,6 +48,7 @@ import com.yision.fluidlogistics.block.InfiniteFluidTank.InfiniteFluidTankBlock;
 import com.yision.fluidlogistics.block.WaterContainingCopperCasing.WaterContainingCopperCasingBlock;
 import com.yision.fluidlogistics.block.CopperBasin.CopperBasinBlock;
 import com.yision.fluidlogistics.block.WaterproofCardboardBlock;
+import com.yision.fluidlogistics.block.FluidHatch.FluidHatchBlock;
 import com.yision.fluidlogistics.block.HorizontalMultiFluidTank.HorizontalMultiFluidTankGenerator;
 import com.simibubi.create.content.processing.basin.BasinGenerator;
 import com.simibubi.create.content.processing.basin.BasinMovementBehaviour;
@@ -286,6 +290,33 @@ public class AllBlocks {
             .blockstate(MechanicalFluidGunGenerator::generate)
             .item(MechanicalFluidGunItem::new)
             .model(AssetLookup::customItemModel)
+            .build()
+            .register();
+
+    public static final BlockEntry<FluidHatchBlock> FLUID_HATCH =
+        REGISTRATE.block("fluid_hatch", FluidHatchBlock::new)
+            .initialProperties(SharedProperties::copperMetal)
+            .properties(p -> p.noOcclusion().isRedstoneConductor(($1, $2, $3) -> false))
+            .properties(p -> p.mapColor(MapColor.COLOR_GRAY))
+            .transform(pickaxeOnly())
+            .setData(ProviderType.LANG, NonNullBiConsumer.noop())
+            .addLayer(() -> RenderType::cutoutMipped)
+            .blockstate((ctx, prov) -> {
+                var model = prov.models().getExistingFile(prov.modLoc("block/fluid_hatch"));
+                prov.getVariantBuilder(ctx.get()).forAllStates(state -> {
+                    Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+                    int y = switch (facing) {
+                        case NORTH -> 0;
+                        case SOUTH -> 180;
+                        case EAST -> 90;
+                        case WEST -> 270;
+                        default -> 0;
+                    };
+                    return new ConfiguredModel[]{new ConfiguredModel(model, 0, y, false)};
+                });
+            })
+            .item()
+            .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), prov.modLoc("block/fluid_hatch")))
             .build()
             .register();
 

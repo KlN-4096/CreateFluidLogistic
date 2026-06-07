@@ -61,3 +61,10 @@ If you want to help translate this mod, make a pull request with the translation
 
 Integrate fluids into your automated factory,more is planned!
 
+## License
+Create FluidLogistics is licensed under the BSD-3-Clause. See [LICENSE](LICENSE.txt) for more information.
+
+Certain sections of the project are from the CreateDragonsPlus mod, which is licensed under the LGPL-3.0-or-later license. See [CreateDragonsPlus's license](https://github.com/DragonsPlusMinecraft/CreateDragonsPlus?tab=License-1-ov-file) for more information.
+
+Certain sections of the project are from the CreateFluidStuffs mod, which is licensed under the MIT license. See [CreateFluidStuffs's license](https://github.com/MoePus/create-fluidstuffs/blob/main/LICENSE) for more information.
+

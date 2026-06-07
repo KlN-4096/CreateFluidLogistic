@@ -4,11 +4,16 @@ import net.neoforged.fml.ModList;
 
 public final class CompatMods {
     public static final String CREATE_ENCHANTMENT_INDUSTRY = "create_enchantment_industry";
+    public static final String CREATE_DRAGONS_PLUS = "create_dragons_plus";
 
     private CompatMods() {
     }
 
     public static boolean createEnchantmentIndustryLoaded() {
         return ModList.get().isLoaded(CREATE_ENCHANTMENT_INDUSTRY);
+    }
+
+    public static boolean createDragonsPlusLoaded() {
+        return ModList.get().isLoaded(CREATE_DRAGONS_PLUS);
     }
 }

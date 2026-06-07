@@ -1,5 +1,6 @@
 package com.yision.fluidlogistics.block.MechanicalFluidGun;
 
+import com.simibubi.create.content.kinetics.belt.BeltBlockEntity;
 import com.simibubi.create.content.kinetics.belt.behaviour.BeltProcessingBehaviour;
 import com.simibubi.create.content.kinetics.belt.behaviour.TransportedItemStackHandlerBehaviour;
 import com.simibubi.create.content.kinetics.belt.behaviour.TransportedItemStackHandlerBehaviour.TransportedResult;
@@ -30,12 +31,82 @@ class MechanicalFluidGunBeltHandler {
 	private final MechanicalFluidGunBlockEntity be;
 	private int beltKeepAliveTicks;
 
+	@Nullable
+	private TransportedItemStack activeBeltItem;
+	@Nullable
+	private BlockPos activeBeltPos;
+
 	MechanicalFluidGunBeltHandler(MechanicalFluidGunBlockEntity be) {
 		this.be = be;
 	}
 
+	private boolean hasActiveBeltSession() {
+		return activeBeltItem != null;
+	}
+
+	private boolean isActiveBeltItem(TransportedItemStack transported,
+									 TransportedItemStackHandlerBehaviour handler) {
+		return transported == activeBeltItem
+			&& activeBeltPos != null
+			&& handler.blockEntity != null
+			&& activeBeltPos.equals(handler.blockEntity.getBlockPos());
+	}
+
+	private void bindActiveBeltSession(TransportedItemStack transported, BlockPos beltPos) {
+		activeBeltItem = transported;
+		activeBeltPos = beltPos.immutable();
+	}
+
+	private void clearActiveBeltSession() {
+		activeBeltItem = null;
+		activeBeltPos = null;
+	}
+
+	private boolean isImmediateDownstreamBeltPos(BlockPos currentPos, BlockPos candidatePos) {
+		Level level = be.getLevel();
+		if (!(level.getBlockEntity(currentPos) instanceof BeltBlockEntity currentBelt)) {
+			return false;
+		}
+		if (!(level.getBlockEntity(candidatePos) instanceof BeltBlockEntity candidateBelt)) {
+			return false;
+		}
+		if (!currentBelt.getController().equals(candidateBelt.getController())) {
+			return false;
+		}
+
+		BeltBlockEntity controller = currentBelt.getControllerBE();
+		if (controller == null) {
+			return false;
+		}
+
+		int step = controller.getDirectionAwareBeltMovementSpeed() > 0 ? 1 : -1;
+		return candidateBelt.index == currentBelt.index + step;
+	}
+
+	private boolean canPreemptWithNextBeltItem(TransportedItemStack candidate,
+											   TransportedItemStackHandlerBehaviour handler,
+											   FluidStack fillableFluid) {
+		MechanicalFluidGunItemFilling itemFilling = be.getItemFillingHelper();
+		if (!itemFilling.isFillingBelt() || activeBeltItem == null || activeBeltPos == null) {
+			return false;
+		}
+		if (handler.blockEntity == null) {
+			return false;
+		}
+		BlockPos candidatePos = handler.blockEntity.getBlockPos();
+		if (!isImmediateDownstreamBeltPos(activeBeltPos, candidatePos)) {
+			return false;
+		}
+		if (itemFilling.getProcessingItem().isEmpty()
+			|| !ItemStack.isSameItemSameComponents(candidate.stack.copyWithCount(1),
+				itemFilling.getProcessingItem())) {
+			return false;
+		}
+		return !fillableFluid.isEmpty();
+	}
+
 	BeltProcessingBehaviour.ProcessingResult onBeltItemReceived(TransportedItemStack transported,
-																TransportedItemStackHandlerBehaviour handler) {
+																	TransportedItemStackHandlerBehaviour handler) {
 		if (!FeatureToggle.isEnabled(FeatureToggle.MECHANICAL_FLUID_GUN)) {
 			return PASS;
 		}
@@ -61,10 +132,18 @@ class MechanicalFluidGunBeltHandler {
 		}
 
 		if (itemFilling.isFillingBelt()) {
-			return HOLD;
+			if (canPreemptWithNextBeltItem(transported, handler, fillable)) {
+				cancelBeltItemFilling();
+				be.setActiveTarget(targetIndex);
+				bindActiveBeltSession(transported, handler.blockEntity.getBlockPos());
+				keepBeltTargetAlive();
+				return HOLD;
+			}
+			return PASS;
 		}
 
 		be.setActiveTarget(targetIndex);
+		bindActiveBeltSession(transported, handler.blockEntity.getBlockPos());
 		keepBeltTargetAlive();
 		return HOLD;
 	}
@@ -82,18 +161,26 @@ class MechanicalFluidGunBeltHandler {
 
 		if (targetIndex == -1) {
 			if (itemFilling.isFillingBelt()) {
-				cancelItemFilling();
+				cancelBeltItemFilling();
 			}
 			return PASS;
 		}
 
 		keepBeltTargetAlive();
 
+		if (hasActiveBeltSession() && !isActiveBeltItem(transported, handler)) {
+			return PASS;
+		}
+
 		if (itemFilling.isFillingDepot()) {
 			return HOLD;
 		}
 
 		if (itemFilling.isFillingBelt()) {
+			if (!hasActiveBeltSession()) {
+				cancelBeltItemFilling();
+				return PASS;
+			}
 			BlockPos beltPos = handler.blockEntity.getBlockPos();
 			if (!itemFilling.isProcessingBeltPos(beltPos)) {
 				return HOLD;
@@ -104,7 +191,7 @@ class MechanicalFluidGunBeltHandler {
 			if (itemFilling.getProcessingItem().isEmpty()
 				|| transported.stack.getCount() < 1
 				|| !ItemStack.isSameItemSameComponents(transported.stack.copyWithCount(1), itemFilling.getProcessingItem())) {
-				cancelItemFilling();
+				cancelBeltItemFilling();
 				return PASS;
 			}
 			if (itemFilling.getProcessingTicks() > 0) {
@@ -141,6 +228,33 @@ class MechanicalFluidGunBeltHandler {
 			be.getCycleHelper().markScheduledTarget(targetIndex);
 		}
 		return started ? HOLD : PASS;
+	}
+
+	void tickActiveBeltFillingFallback() {
+		MechanicalFluidGunItemFilling itemFilling = be.getItemFillingHelper();
+		if (!itemFilling.isFillingBelt()) {
+			return;
+		}
+
+		if (!hasActiveBeltSession()
+			|| activeBeltPos == null
+			|| !isConfiguredValidBeltTarget(activeBeltPos)) {
+			cancelBeltItemFilling();
+			return;
+		}
+
+		if (activeBeltItem.stack.isEmpty()
+			|| itemFilling.getProcessingItem().isEmpty()
+			|| !ItemStack.isSameItemSameComponents(activeBeltItem.stack.copyWithCount(1),
+				itemFilling.getProcessingItem())) {
+			cancelBeltItemFilling();
+		}
+	}
+
+	private boolean isConfiguredValidBeltTarget(BlockPos beltPos) {
+		MechanicalFluidGunTargets targets = be.getTargetsHelper();
+		return targets.getTargetIndexFor(be.gunPos(), beltPos) != -1
+			&& targets.isTargetValid(be.getLevel(), be.gunPos(), beltPos);
 	}
 
 	private boolean startBeltFilling(IFluidHandler sourceHandler, ItemStack item, FluidStack availableFluid, BlockPos beltPos) {
@@ -193,6 +307,7 @@ class MechanicalFluidGunBeltHandler {
 		visuals.spawnServerSprayParticles(be.getLevel(), be.gunPos(), aimPoint);
 		be.getLevel().playSound(null, be.gunPos(), SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 0.5f, 1.0f + be.getLevel().random.nextFloat() * 0.2f);
 
+		clearActiveBeltSession();
 		itemFilling.clear();
 		be.endWorkCycle();
 		be.notifyGunUpdate();
@@ -227,6 +342,7 @@ class MechanicalFluidGunBeltHandler {
 
 	void clearBeltState() {
 		beltKeepAliveTicks = 0;
+		clearActiveBeltSession();
 	}
 
 	boolean targetsBeltPos(BlockPos beltPos) {
@@ -234,7 +350,7 @@ class MechanicalFluidGunBeltHandler {
 	}
 
 	boolean isBeltTarget(BlockPos absTarget) {
-		return be.getLevel().getBlockEntity(absTarget) instanceof com.simibubi.create.content.kinetics.belt.BeltBlockEntity;
+		return be.getLevel().getBlockEntity(absTarget) instanceof BeltBlockEntity;
 	}
 
 	@Nullable
@@ -268,5 +384,10 @@ class MechanicalFluidGunBeltHandler {
 		be.getItemFillingHelper().clear();
 		be.endWorkCycle();
 		be.notifyGunUpdate();
+	}
+
+	private void cancelBeltItemFilling() {
+		cancelItemFilling();
+		clearBeltState();
 	}
 }

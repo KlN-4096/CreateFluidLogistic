@@ -13,7 +13,11 @@ import com.yision.fluidlogistics.registry.AllFluidLogisticsParticleTypes;
 import net.createmod.ponder.foundation.PonderIndex;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -27,6 +31,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.AddPackFindersEvent;
 
 @Mod(value = FluidLogistics.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = FluidLogistics.MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
@@ -60,6 +65,21 @@ public class FluidLogisticsClient {
     @SubscribeEvent
     static void onRegisterParticleProviders(RegisterParticleProvidersEvent event) {
         AllFluidLogisticsParticleTypes.registerFactories(event);
+    }
+
+    @SubscribeEvent
+    static void onAddPackFinders(AddPackFindersEvent event) {
+        if (event.getPackType() != PackType.CLIENT_RESOURCES) {
+            return;
+        }
+
+        event.addPackFinders(
+                FluidLogistics.asResource("resourcepacks/cu_again_for_fluidlogistics"),
+                PackType.CLIENT_RESOURCES,
+                Component.translatable("resourcepack.fluidlogistics.cu_again_for_fluidlogistics"),
+                PackSource.DEFAULT,
+                false,
+                Pack.Position.TOP);
     }
 
     @EventBusSubscriber(modid = FluidLogistics.MODID, value = Dist.CLIENT)

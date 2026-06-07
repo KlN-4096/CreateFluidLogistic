@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 public class MechanicalFluidGunStreamParticleData
     implements ParticleOptions, ICustomParticleData<MechanicalFluidGunStreamParticleData> {
 
+    public static final int LIFETIME = 8;
+
     public static final MapCodec<MechanicalFluidGunStreamParticleData> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
         .group(FluidStack.CODEC.fieldOf("fluid")
             .forGetter(data -> data.fluid))
@@ -84,7 +86,7 @@ class MechanicalFluidGunStreamParticle extends TextureSheetParticle {
         xd = xSpeed;
         yd = ySpeed;
         zd = zSpeed;
-        lifetime = 8;
+        lifetime = MechanicalFluidGunStreamParticleData.LIFETIME;
         quadSize = 0.028f + level.random.nextFloat() * 0.012f;
         rCol = 0.8f;
         gCol = 0.8f;

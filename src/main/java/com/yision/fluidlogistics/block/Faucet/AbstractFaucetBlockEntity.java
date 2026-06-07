@@ -952,10 +952,42 @@ public abstract class AbstractFaucetBlockEntity extends SmartBlockEntity {
     }
 
     private boolean tickBeltFill() {
+        if (!validateBeltItemStillPresent()) {
+            cancelItemFilling();
+            return true;
+        }
         if (processingTicks == 0) {
             cancelItemFilling();
         }
         return true;
+    }
+
+    private boolean validateBeltItemStillPresent() {
+        if (processingItem.isEmpty()) {
+            return false;
+        }
+
+        ItemStack currentItem = getCurrentStackInBeltSegment(worldPosition.below());
+        return !currentItem.isEmpty()
+            && currentItem.getCount() >= 1
+            && ItemStack.isSameItemSameComponents(currentItem.copyWithCount(1), processingItem);
+    }
+
+    private ItemStack getCurrentStackInBeltSegment(BlockPos beltPos) {
+        var state = level.getBlockState(beltPos);
+        var blockEntity = level.getBlockEntity(beltPos);
+        var handler = level.getCapability(
+            Capabilities.ItemHandler.BLOCK,
+            beltPos,
+            state,
+            blockEntity,
+            null
+        );
+        if (handler == null || handler.getSlots() <= 0) {
+            return ItemStack.EMPTY;
+        }
+
+        return handler.getStackInSlot(0);
     }
 
     private void tickDripEffect() {

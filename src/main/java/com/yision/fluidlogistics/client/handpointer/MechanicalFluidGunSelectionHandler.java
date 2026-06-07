@@ -3,6 +3,7 @@ package com.yision.fluidlogistics.client.handpointer;
 import com.yision.fluidlogistics.block.MechanicalFluidGun.MechanicalFluidGunBlock;
 import com.yision.fluidlogistics.block.MechanicalFluidGun.MechanicalFluidGunBlockEntity;
 import com.yision.fluidlogistics.block.MechanicalFluidGun.MechanicalFluidGunTargetConfig;
+import com.yision.fluidlogistics.block.FluidHatch.FluidHatchFluidHandlerForwarder;
 import com.yision.fluidlogistics.network.MechanicalFluidGunPackets;
 
 import java.util.ArrayList;
@@ -66,7 +67,7 @@ public class MechanicalFluidGunSelectionHandler {
             return false;
         }
 
-        targets.add(new MechanicalFluidGunPackets.TargetPacket.TargetEntry(pos.immutable(), face));
+        targets.add(new MechanicalFluidGunPackets.TargetPacket.TargetEntry(pos.immutable(), getTargetFace(level, pos, face)));
         return true;
     }
 
@@ -142,6 +143,11 @@ public class MechanicalFluidGunSelectionHandler {
             return false;
         }
         return MechanicalFluidGunBlock.isSelectableTarget(level, selectedGunPos, pos);
+    }
+
+    private static @Nullable Direction getTargetFace(Level level, BlockPos pos, @Nullable Direction clickedFace) {
+        Direction hatchSide = FluidHatchFluidHandlerForwarder.getExposedSide(level.getBlockState(pos));
+        return hatchSide == null ? clickedFace : hatchSide;
     }
 
     private static void renderOutline(Level level, BlockPos pos, String slot, int color) {

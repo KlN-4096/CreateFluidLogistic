@@ -5,6 +5,7 @@ import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlockEntity;
 import com.yision.fluidlogistics.block.Faucet.FaucetFilling;
+import com.yision.fluidlogistics.block.FluidHatch.FluidHatchFluidHandlerForwarder;
 import com.yision.fluidlogistics.config.FeatureToggle;
 
 import net.minecraft.core.BlockPos;
@@ -39,6 +40,11 @@ class MechanicalFluidGunFillOperations {
 	static IFluidHandler getTargetFluidHandler(Level level, BlockPos pos, @Nullable Direction face) {
 		if (!FeatureToggle.isEnabled(FeatureToggle.MECHANICAL_FLUID_GUN)) {
 			return null;
+		}
+		BlockState targetState = level.getBlockState(pos);
+		IFluidHandler hatchHandler = FluidHatchFluidHandlerForwarder.get(level, pos, targetState, face);
+		if (hatchHandler != null) {
+			return hatchHandler;
 		}
 		IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, pos, face);
 		if (handler == null) {

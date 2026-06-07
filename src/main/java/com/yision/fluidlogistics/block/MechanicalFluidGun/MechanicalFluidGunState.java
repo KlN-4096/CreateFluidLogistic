@@ -202,6 +202,11 @@ class MechanicalFluidGunItemFilling {
 		return processingItem;
 	}
 
+	@Nullable
+	BlockPos getProcessingBeltPos() {
+		return processingBeltPos;
+	}
+
 	FluidStack getPendingFluid() {
 		return pendingFluid;
 	}

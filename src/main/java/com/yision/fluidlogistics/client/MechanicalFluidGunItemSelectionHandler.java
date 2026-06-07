@@ -2,6 +2,7 @@ package com.yision.fluidlogistics.client;
 
 import com.simibubi.create.foundation.utility.CreateLang;
 import com.yision.fluidlogistics.FluidLogistics;
+import com.yision.fluidlogistics.block.FluidHatch.FluidHatchFluidHandlerForwarder;
 import com.yision.fluidlogistics.block.MechanicalFluidGun.MechanicalFluidGunBlock;
 import com.yision.fluidlogistics.network.MechanicalFluidGunPackets;
 
@@ -82,7 +83,7 @@ public class MechanicalFluidGunItemSelectionHandler {
             return;
         }
 
-        selectedTargets.add(new TargetSelection(pos.immutable(), event.getFace()));
+        selectedTargets.add(new TargetSelection(pos.immutable(), getTargetFace(level, pos, event.getFace())));
         sendTargetStatus(player, level.getBlockState(pos));
 
         event.setCanceled(true);
@@ -171,6 +172,11 @@ public class MechanicalFluidGunItemSelectionHandler {
 
     private static boolean isHoldingGun(Player player) {
         return com.yision.fluidlogistics.registry.AllBlocks.MECHANICAL_FLUID_GUN.isIn(player.getMainHandItem());
+    }
+
+    private static Direction getTargetFace(Level level, BlockPos pos, Direction clickedFace) {
+        Direction hatchSide = FluidHatchFluidHandlerForwarder.getExposedSide(level.getBlockState(pos));
+        return hatchSide == null ? clickedFace : hatchSide;
     }
 
     private static void drawTargetOutlines() {

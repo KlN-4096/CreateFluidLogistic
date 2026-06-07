@@ -150,6 +150,7 @@ public class FluidLogistics {
                     return new CompressedTankFluidHandler(stack);
                 },
                 AllItems.COMPRESSED_STORAGE_TANK.get());
+
     }
 
     private void hideDisabledItems(final BuildCreativeModeTabContentsEvent event) {
@@ -158,7 +159,13 @@ public class FluidLogistics {
         }
 
         for (FeatureItem fi : FEATURE_ITEMS) {
-            if (!FeatureToggle.isEnabled(fi.feature)) {
+            boolean shouldHide;
+            if (fi.feature == FeatureToggle.FLUID_HATCH) {
+                shouldHide = !FeatureToggle.isFluidHatchAdvertised();
+            } else {
+                shouldHide = !FeatureToggle.isEnabled(fi.feature);
+            }
+            if (shouldHide) {
                 ItemStack hiddenItem = event.getSearchEntries().stream()
                         .filter(stack -> stack.getItem() == fi.item.get().asItem())
                         .findFirst()
@@ -190,11 +197,11 @@ public class FluidLogistics {
             new FeatureItem(FeatureToggle.COPPER_BASIN, AllBlocks.COPPER_BASIN),
             new FeatureItem(FeatureToggle.MECHANICAL_FLUID_GUN, AllBlocks.MECHANICAL_FLUID_GUN),
             new FeatureItem(FeatureToggle.HAND_POINTER, AllItems.HAND_POINTER),
-            // Advanced-logistics-only items (controlled by the master switch)
             new FeatureItem(FeatureToggle.FLUID_PACKAGER, AllBlocks.FLUID_PACKAGER),
             new FeatureItem(FeatureToggle.COMPRESSED_STORAGE_TANK, AllItems.COMPRESSED_STORAGE_TANK),
             new FeatureItem(FeatureToggle.RARE_FLUID_PACKAGE, AllItems.RARE_FLUID_PACKAGE),
             new FeatureItem(FeatureToggle.RARE_FLUID_PACKAGE, AllItems.FLUID_PACKAGE_2),
+            new FeatureItem(FeatureToggle.FLUID_HATCH, AllBlocks.FLUID_HATCH),
     };
 
     public static ResourceLocation asResource(String path) {

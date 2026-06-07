@@ -25,6 +25,7 @@ public class Config {
     private static final boolean MECHANICAL_FLUID_GUN_ENABLED_DEFAULT = true;
     private static final boolean HAND_POINTER_ENABLED_DEFAULT = true;
     private static final boolean ADVANCED_LOGISTICS_NETWORK_ENABLED_DEFAULT = true;
+    private static final boolean FLUID_HATCH_ENABLED_DEFAULT = true;
 
     private static final int COMPRESSED_TANK_CAPACITY_DEFAULT = 10000;
     private static final int COMPRESSED_TANK_CAPACITY_MIN = 1000;
@@ -114,6 +115,11 @@ public class Config {
             .translation("fluidlogistics.configuration.advancedLogisticsNetworkEnabled")
             .define("advancedLogisticsNetworkEnabled", ADVANCED_LOGISTICS_NETWORK_ENABLED_DEFAULT);
 
+    public static final ModConfigSpec.BooleanValue FLUID_HATCH_ENABLED = BUILDER
+            .comment("Enables fluid hatch")
+            .translation("fluidlogistics.configuration.fluidHatchEnabled")
+            .define("fluidHatchEnabled", FLUID_HATCH_ENABLED_DEFAULT);
+
     public static final ModConfigSpec.IntValue COMPRESSED_TANK_CAPACITY = BUILDER
             .comment("The maximum amount of fluid (in mB) a compressed tank can hold")
             .translation("fluidlogistics.configuration.compressedTankCapacity")
@@ -147,6 +153,7 @@ public class Config {
     private static boolean mechanicalFluidGunEnabled = MECHANICAL_FLUID_GUN_ENABLED_DEFAULT;
     private static boolean handPointerEnabled = HAND_POINTER_ENABLED_DEFAULT;
     private static boolean advancedLogisticsNetworkEnabled = ADVANCED_LOGISTICS_NETWORK_ENABLED_DEFAULT;
+    private static boolean fluidHatchEnabled = FLUID_HATCH_ENABLED_DEFAULT;
     private static int compressedTankCapacity = COMPRESSED_TANK_CAPACITY_DEFAULT;
     private static int fluidPackageCapacity = FLUID_PACKAGE_CAPACITY_DEFAULT;
     private static int fluidPumpRange = FLUID_PUMP_RANGE_DEFAULT;
@@ -167,6 +174,7 @@ public class Config {
         mechanicalFluidGunEnabled = MECHANICAL_FLUID_GUN_ENABLED.get();
         handPointerEnabled = HAND_POINTER_ENABLED.get();
         advancedLogisticsNetworkEnabled = ADVANCED_LOGISTICS_NETWORK_ENABLED.get();
+        fluidHatchEnabled = FLUID_HATCH_ENABLED.get();
         compressedTankCapacity = COMPRESSED_TANK_CAPACITY.get();
         fluidPackageCapacity = FLUID_PACKAGE_CAPACITY.get();
         fluidPumpRange = FLUID_PUMP_RANGE.get();
@@ -186,6 +194,7 @@ public class Config {
     public static boolean isMechanicalFluidGunEnabled() { return mechanicalFluidGunEnabled; }
     public static boolean isHandPointerEnabled() { return handPointerEnabled; }
     public static boolean isAdvancedLogisticsNetworkEnabled() { return advancedLogisticsNetworkEnabled; }
+    public static boolean isFluidHatchEnabled() { return fluidHatchEnabled; }
 
     public static int getCompressedTankCapacity() { return compressedTankCapacity; }
 

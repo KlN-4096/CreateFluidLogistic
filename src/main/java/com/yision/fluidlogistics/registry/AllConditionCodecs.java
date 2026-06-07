@@ -3,6 +3,7 @@ package com.yision.fluidlogistics.registry;
 import com.mojang.serialization.MapCodec;
 import com.yision.fluidlogistics.FluidLogistics;
 import com.yision.fluidlogistics.config.FeatureEnabledCondition;
+import com.yision.fluidlogistics.config.FluidHatchAdvertisedCondition;
 import java.util.function.Supplier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.conditions.ICondition;
@@ -15,6 +16,9 @@ public final class AllConditionCodecs {
 
     public static final Supplier<MapCodec<FeatureEnabledCondition>> FEATURE_ENABLED =
             CONDITION_CODECS.register("feature_enabled", () -> FeatureEnabledCondition.CODEC);
+
+    public static final Supplier<MapCodec<FluidHatchAdvertisedCondition>> FLUID_HATCH_ADVERTISED =
+            CONDITION_CODECS.register("fluid_hatch_advertised", () -> FluidHatchAdvertisedCondition.CODEC);
 
     private AllConditionCodecs() {
     }

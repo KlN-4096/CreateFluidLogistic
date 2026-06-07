@@ -49,7 +49,10 @@ class MechanicalFluidGunProcessor {
 		}
 
 		if (itemFilling.isFilling()) {
-			if (itemFilling.isFillingBelt()) return;
+			if (itemFilling.isFillingBelt()) {
+				beltHandler.tickActiveBeltFillingFallback();
+				return;
+			}
 			if (itemFilling.getProcessingTicks() <= 0) {
 				finishDepotItemFilling();
 				return;

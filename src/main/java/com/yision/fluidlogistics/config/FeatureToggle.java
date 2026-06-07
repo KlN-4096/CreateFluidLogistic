@@ -1,6 +1,7 @@
 package com.yision.fluidlogistics.config;
 
 import com.yision.fluidlogistics.FluidLogistics;
+import com.yision.fluidlogistics.compat.CompatMods;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Collections;
@@ -10,7 +11,6 @@ import java.util.function.BooleanSupplier;
 
 public final class FeatureToggle {
 
-    // --- Feature constants ---
     public static final ResourceLocation FLUID_TRANSPORTER = FluidLogistics.asResource("fluid_transporter");
     public static final ResourceLocation SMART_FAUCET = FluidLogistics.asResource("smart_faucet");
     public static final ResourceLocation FAUCET = FluidLogistics.asResource("faucet");
@@ -26,10 +26,11 @@ public final class FeatureToggle {
     public static final ResourceLocation HAND_POINTER = FluidLogistics.asResource("hand_pointer");
     public static final ResourceLocation ADVANCED_LOGISTICS_NETWORK = FluidLogistics.asResource("advanced_logistics_network");
 
-    // Advanced-logistics-only features (no independent config, mapped to the master switch)
     public static final ResourceLocation FLUID_PACKAGER = FluidLogistics.asResource("fluid_packager");
     public static final ResourceLocation COMPRESSED_STORAGE_TANK = FluidLogistics.asResource("compressed_storage_tank");
     public static final ResourceLocation RARE_FLUID_PACKAGE = FluidLogistics.asResource("rare_fluid_package");
+
+    public static final ResourceLocation FLUID_HATCH = FluidLogistics.asResource("fluid_hatch");
 
     private static final Map<ResourceLocation, BooleanSupplier> FEATURE_MAP;
 
@@ -49,10 +50,10 @@ public final class FeatureToggle {
         map.put(MECHANICAL_FLUID_GUN, Config::isMechanicalFluidGunEnabled);
         map.put(HAND_POINTER, Config::isHandPointerEnabled);
         map.put(ADVANCED_LOGISTICS_NETWORK, Config::isAdvancedLogisticsNetworkEnabled);
-        // Advanced-logistics-only features share the master switch
         map.put(FLUID_PACKAGER, Config::isAdvancedLogisticsNetworkEnabled);
         map.put(COMPRESSED_STORAGE_TANK, Config::isAdvancedLogisticsNetworkEnabled);
         map.put(RARE_FLUID_PACKAGE, Config::isAdvancedLogisticsNetworkEnabled);
+        map.put(FLUID_HATCH, Config::isFluidHatchEnabled);
         FEATURE_MAP = Collections.unmodifiableMap(map);
     }
 
@@ -66,5 +67,9 @@ public final class FeatureToggle {
 
     public static boolean isAdvancedLogisticsNetworkEnabled() {
         return Config.isAdvancedLogisticsNetworkEnabled();
+    }
+
+    public static boolean isFluidHatchAdvertised() {
+        return Config.isFluidHatchEnabled() && !CompatMods.createDragonsPlusLoaded();
     }
 }
