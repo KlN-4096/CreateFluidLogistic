@@ -45,7 +45,6 @@ import com.yision.fluidlogistics.item.CompressedTankItem;
 import com.yision.fluidlogistics.item.FluidPackageItem;
 import com.yision.fluidlogistics.registry.AllBlockEntities;
 import com.yision.fluidlogistics.registry.AllItems;
-import com.yision.fluidlogistics.util.FluidInsertionHelper;
 import com.yision.fluidlogistics.util.InfiniteFluidHandlerHelper;
 import com.yision.fluidlogistics.util.IPackagerOverrideData;
 
@@ -162,16 +161,6 @@ public class FluidPackagerBlockEntity extends PackagerBlockEntity
         return target != null && !(target instanceof PortableFluidInterfaceBlockEntity);
     }
 
-    @Nullable
-    private BlockEntity getFluidTargetBlockEntity() {
-        if (level == null) {
-            return null;
-        }
-        Direction facing = getBlockState().getOptionalValue(FluidPackagerBlock.FACING).orElse(Direction.UP);
-        BlockPos targetPos = worldPosition.relative(facing.getOpposite());
-        return level.getBlockEntity(targetPos);
-    }
-
     @Override
     public void tick() {
         if (!Config.isAdvancedLogisticsNetworkEnabled()) {
@@ -191,13 +180,29 @@ public class FluidPackagerBlockEntity extends PackagerBlockEntity
 
     private void performFluidInsertion() {
         IFluidHandler fluidHandler = fluidTarget.getInventory();
-        BlockEntity targetBlockEntity = getFluidTargetBlockEntity();
-        boolean insertedAll = fluidHandler != null
-            && FluidInsertionHelper.insertAllOrNothing(targetBlockEntity, fluidHandler, pendingFluidsToInsert);
 
-        if (!insertedAll && !previouslyUnwrapped.isEmpty()) {
-            queuedExitingPackages.add(0, new BigItemStack(previouslyUnwrapped.copy(), 1));
+        if (fluidHandler == null || pendingFluidsToInsert.isEmpty()) {
+            if (!previouslyUnwrapped.isEmpty()) {
+                queuedExitingPackages.add(0, new BigItemStack(previouslyUnwrapped.copy(), 1));
+            }
+            pendingFluidsToInsert.clear();
+            triggerStockCheck();
+            return;
         }
+
+        FluidStack fluid = pendingFluidsToInsert.getFirst();
+
+        int accepted = fluidHandler.fill(fluid.copy(), FluidAction.SIMULATE);
+        if (accepted != fluid.getAmount()) {
+            if (!previouslyUnwrapped.isEmpty()) {
+                queuedExitingPackages.add(0, new BigItemStack(previouslyUnwrapped.copy(), 1));
+            }
+            pendingFluidsToInsert.clear();
+            triggerStockCheck();
+            return;
+        }
+
+        fluidHandler.fill(fluid.copy(), FluidAction.EXECUTE);
 
         pendingFluidsToInsert.clear();
         triggerStockCheck();
@@ -424,7 +429,12 @@ public class FluidPackagerBlockEntity extends PackagerBlockEntity
 
             int drainAmount = Math.min(maxAmount, fluidInTank.getAmount());
             FluidStack toDrain = fluidInTank.copyWithAmount(drainAmount);
-            FluidStack drained = handler.drain(toDrain, FluidAction.EXECUTE);
+
+            FluidStack simulated = handler.drain(toDrain, FluidAction.SIMULATE);
+            if (simulated.isEmpty())
+                continue;
+
+            FluidStack drained = handler.drain(simulated, FluidAction.EXECUTE);
             if (!drained.isEmpty())
                 return drained;
         }
@@ -479,11 +489,13 @@ public class FluidPackagerBlockEntity extends PackagerBlockEntity
         if (fluidHandler == null) {
             return false;
         }
-        BlockEntity targetBlockEntity = getFluidTargetBlockEntity();
 
-        List<FluidStack> packageFluids = collectPackageFluids(items);
+        FluidStack fluid = collectSinglePackageFluid(items);
+        if (fluid.isEmpty())
+            return true;
 
-        if (!packageFluids.isEmpty() && !FluidInsertionHelper.canAcceptAll(targetBlockEntity, fluidHandler, packageFluids)) {
+        int accepted = fluidHandler.fill(fluid.copy(), FluidAction.SIMULATE);
+        if (accepted != fluid.getAmount()) {
             return false;
         }
 
@@ -492,7 +504,7 @@ public class FluidPackagerBlockEntity extends PackagerBlockEntity
         }
 
         pendingFluidsToInsert.clear();
-        pendingFluidsToInsert.addAll(packageFluids);
+        pendingFluidsToInsert.add(fluid);
 
         sendComputerEvent(box, "package_received");
         previouslyUnwrapped = box.copyWithCount(1);
@@ -503,13 +515,19 @@ public class FluidPackagerBlockEntity extends PackagerBlockEntity
         return true;
     }
 
-    private static List<FluidStack> collectPackageFluids(List<ItemStack> items) {
-        List<FluidStack> packageFluids = new LinkedList<>();
+    private static FluidStack collectSinglePackageFluid(List<ItemStack> items) {
+        FluidStack result = FluidStack.EMPTY;
         for (ItemStack item : items) {
             FluidStack fluid = CompressedTankItem.getFluid(item);
-            packageFluids.add(fluid.copy());
+            if (fluid.isEmpty())
+                continue;
+            if (result.isEmpty()) {
+                result = fluid.copy();
+            } else {
+                result.grow(fluid.getAmount());
+            }
         }
-        return packageFluids;
+        return result;
     }
 
     @Override
@@ -646,6 +664,14 @@ public class FluidPackagerBlockEntity extends PackagerBlockEntity
         if (nextRequest.isEmpty()) {
             finalPackageAtLink = true;
             queuedRequests.remove(0);
+            if (!queuedRequests.isEmpty()) {
+                PackagingRequest followingRequest = queuedRequests.get(0);
+                if (sameFragmentSequence(fixedAddress, fixedOrderId, linkIndexInOrder, followingRequest)) {
+                    followingRequest.packageCounter()
+                        .setValue(packageIndexAtLink + 1);
+                    finalPackageAtLink = false;
+                }
+            }
         }
 
         PackageItem.setOrder(fluidPackage, fixedOrderId, linkIndexInOrder, finalLinkInOrder,
@@ -686,11 +712,23 @@ public class FluidPackagerBlockEntity extends PackagerBlockEntity
 
             int drainAmount = Math.min(maxAmount, fluidInTank.getAmount());
             FluidStack toDrain = fluidInTank.copyWithAmount(drainAmount);
-            FluidStack drained = handler.drain(toDrain, FluidAction.EXECUTE);
+
+            FluidStack simulated = handler.drain(toDrain, FluidAction.SIMULATE);
+            if (simulated.isEmpty())
+                continue;
+
+            FluidStack drained = handler.drain(simulated, FluidAction.EXECUTE);
             if (!drained.isEmpty())
                 return drained;
         }
         return FluidStack.EMPTY;
+    }
+
+    private static boolean sameFragmentSequence(@Nullable String address, int orderId, int linkIndex,
+            PackagingRequest request) {
+        return Objects.equals(address, request.address())
+            && orderId == request.orderId()
+            && linkIndex == request.linkIndex();
     }
 
     @Override

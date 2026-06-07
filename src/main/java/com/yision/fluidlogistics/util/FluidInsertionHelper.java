@@ -45,7 +45,7 @@ public final class FluidInsertionHelper {
 		return merged;
 	}
 
-	public static boolean canAcceptAll(@Nullable BlockEntity target, IFluidHandler handler, List<FluidStack> packageFluids) {
+	public static boolean canAcceptAllBySnapshot(@Nullable BlockEntity target, IFluidHandler handler, List<FluidStack> packageFluids) {
 		List<FluidStack> merged = mergeFluidsByType(packageFluids);
 		if (merged.isEmpty()) {
 			return true;
@@ -72,14 +72,14 @@ public final class FluidInsertionHelper {
 
 		return canFillWithoutTargetSnapshot(handler, merged);
 	}
-
-	public static boolean insertAllOrNothing(@Nullable BlockEntity target, IFluidHandler handler, List<FluidStack> packageFluids) {
+	
+	public static boolean insertAllOrNothingBySnapshot(@Nullable BlockEntity target, IFluidHandler handler, List<FluidStack> packageFluids) {
 		List<FluidStack> merged = mergeFluidsByType(packageFluids);
 		if (merged.isEmpty()) {
 			return true;
 		}
 
-		if (!canAcceptAll(target, handler, packageFluids)) {
+		if (!canAcceptAllBySnapshot(target, handler, packageFluids)) {
 			return false;
 		}
 

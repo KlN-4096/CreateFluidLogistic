@@ -11,10 +11,11 @@ import com.simibubi.create.content.logistics.packager.PackagerBlock;
 import com.simibubi.create.content.logistics.packager.PackagerBlockEntity;
 import com.simibubi.create.content.logistics.packager.repackager.RepackagerBlockEntity;
 import com.simibubi.create.content.logistics.stockTicker.PackageOrderWithCrafts;
+import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.foundation.item.ItemHelper;
 import com.yision.fluidlogistics.goggle.PackagerGoggleInfo;
 import com.yision.fluidlogistics.item.CompressedTankItem;
-import com.yision.fluidlogistics.util.FluidInsertionHelper;
+import com.yision.fluidlogistics.util.BasinFluidPackageUnpacking;
 import com.yision.fluidlogistics.util.IPackagerOverrideData;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.core.BlockPos;
@@ -31,6 +32,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -100,27 +102,56 @@ public class PackagerBlockEntityMixin implements IPackagerOverrideData, IHaveGog
         BlockPos targetPos = packager.getBlockPos().relative(facing.getOpposite());
         BlockState targetState = level.getBlockState(targetPos);
         BlockEntity targetBlockEntity = level.getBlockEntity(targetPos);
-        if (!fluidlogistics$isCreateUnpackingTarget(level, targetPos, targetState, targetBlockEntity, facing)) {
-            cir.setReturnValue(false);
+
+        List<FluidStack> mergedFluids = fluidlogistics$mergeFluidsByType(packageFluids);
+        if (mergedFluids.isEmpty()) {
             return;
         }
 
-        IFluidHandler fluidHandler = level.getCapability(Capabilities.FluidHandler.BLOCK, targetPos, targetState, targetBlockEntity, facing);
-        if (fluidHandler == null) {
-            cir.setReturnValue(false);
-            return;
-        }
+        boolean multiFluid = mergedFluids.size() > 1;
+        boolean unpackedFluids;
 
-        if (simulate) {
-            if (!FluidInsertionHelper.canAcceptAll(targetBlockEntity, fluidHandler, packageFluids)) {
+        if (multiFluid) {
+            if (!BasinFluidPackageUnpacking.isSupportedTarget(targetState, targetBlockEntity)) {
                 cir.setReturnValue(false);
                 return;
             }
+
+            unpackedFluids = BasinFluidPackageUnpacking.unpackFluids(
+                (BasinBlockEntity) targetBlockEntity,
+                packageFluids,
+                simulate
+            );
         } else {
-            if (!FluidInsertionHelper.insertAllOrNothing(targetBlockEntity, fluidHandler, packageFluids)) {
+            if (!fluidlogistics$isCreateUnpackingTarget(level, targetPos, targetState, targetBlockEntity, facing)) {
                 cir.setReturnValue(false);
                 return;
             }
+
+            IFluidHandler fluidHandler = level.getCapability(
+                Capabilities.FluidHandler.BLOCK,
+                targetPos,
+                targetState,
+                targetBlockEntity,
+                facing
+            );
+            if (fluidHandler == null) {
+                cir.setReturnValue(false);
+                return;
+            }
+
+            FluidStack fluid = mergedFluids.getFirst();
+            int accepted = fluidHandler.fill(fluid.copy(), FluidAction.SIMULATE);
+            unpackedFluids = accepted == fluid.getAmount();
+
+            if (unpackedFluids && !simulate) {
+                fluidHandler.fill(fluid.copy(), FluidAction.EXECUTE);
+            }
+        }
+
+        if (!unpackedFluids) {
+            cir.setReturnValue(false);
+            return;
         }
 
         items.removeIf(item -> item.getItem() instanceof CompressedTankItem);
@@ -189,8 +220,6 @@ public class PackagerBlockEntityMixin implements IPackagerOverrideData, IHaveGog
         return true;
     }
 
-    // --- Private helpers ---
-
     @Unique
     private static String fluidlogistics$findSignAddress(PackagerBlockEntity packager) {
         for (Direction side : Iterate.directions) {
@@ -255,6 +284,29 @@ public class PackagerBlockEntityMixin implements IPackagerOverrideData, IHaveGog
             }
         }
         return packageFluids;
+    }
+
+    @Unique
+    private static List<FluidStack> fluidlogistics$mergeFluidsByType(List<FluidStack> fluids) {
+        List<FluidStack> merged = new ArrayList<>();
+        for (FluidStack fluid : fluids) {
+            if (fluid.isEmpty())
+                continue;
+
+            boolean found = false;
+            for (FluidStack existing : merged) {
+                if (FluidStack.isSameFluidSameComponents(existing, fluid)) {
+                    existing.grow(fluid.getAmount());
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                merged.add(fluid.copy());
+            }
+        }
+        return merged;
     }
 
     @Unique
