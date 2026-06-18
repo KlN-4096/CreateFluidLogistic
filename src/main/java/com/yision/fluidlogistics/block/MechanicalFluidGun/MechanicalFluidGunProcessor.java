@@ -306,7 +306,7 @@ class MechanicalFluidGunProcessor {
 		}
 
 		ItemStack result = FaucetFilling.fillItem(be.getLevel(), itemFilling.getPendingFluid().getAmount(),
-			currentItem.copyWithCount(1), itemFilling.getPendingFluid().copy());
+			currentItem, itemFilling.getPendingFluid().copy());
 		if (result.isEmpty()) {
 			itemFilling.clear();
 			be.endWorkCycle();
@@ -327,12 +327,10 @@ class MechanicalFluidGunProcessor {
 			return;
 		}
 
-		ItemStack remaining = currentItem.copy();
-		remaining.shrink(1);
-		if (remaining.isEmpty()) {
+		if (currentItem.isEmpty()) {
 			behaviour.setHeldItem(new TransportedItemStack(result));
 		} else {
-			behaviour.setHeldItem(new TransportedItemStack(remaining));
+			behaviour.setHeldItem(new TransportedItemStack(currentItem.copy()));
 			storeDepotOutput(behaviour, result, absTarget);
 		}
 
