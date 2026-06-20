@@ -279,19 +279,18 @@ public class FluidRepackagerBlockEntity extends PackagerBlockEntity
 		}
 
 		Iterator<ItemStack> it = stalledPackages.iterator();
-		boolean deliveredAny = false;
 		while (it.hasNext()) {
 			ItemStack pkg = it.next();
 			if (simulateSinglePackage(pkg, targetPos, targetState, targetBE, facing)
 				&& executeSinglePackage(pkg, targetPos, targetState, targetBE, facing)) {
+				previouslyUnwrapped = pkg.copyWithCount(1);
+				animationInward = true;
+				animationTicks = CYCLE;
 				it.remove();
-				deliveredAny = true;
+				setChanged();
+				notifyUpdate();
+				return;
 			}
-		}
-
-		if (deliveredAny) {
-			setChanged();
-			notifyUpdate();
 		}
 	}
 
